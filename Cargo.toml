@@ -1,5 +1,5 @@
 [package]
-name = "space-invaders"
+name = "bevy-space-invaders"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,60 +1,74 @@
-use bevy::prelude::*;
+mod constants;
+mod wall;
+
+use bevy::{prelude::*, render::camera::ScalingMode};
+use constants::*;
+use wall::{Wall, WallLocation};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "Space Invaders".to_string(),
+                title: "Space Invaders".into(),
                 ..default()
             }),
             ..default()
         }))
-        .add_plugins(HelloPlugin)
+        .insert_resource(ClearColor(BG_COLOR))
+        .add_systems(Startup, startup)
+        .add_systems(FixedUpdate, move_player)
         .run();
 }
 
-pub struct HelloPlugin;
+fn startup(mut cmds: Commands) {
+    // camera
+    cmds.spawn((
+        Camera2d,
+        Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::AutoMin {
+                min_width: RIGHT_WALL - LEFT_WALL,
+                min_height: TOP_WALL - BOTTOM_WALL,
+            },
+            ..OrthographicProjection::default_2d()
+        }),
+    ));
 
-impl Plugin for HelloPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, TimerMode::Repeating)));
-        app.add_systems(Startup, add_people)
-            .add_systems(Update, (update_people, greet_people).chain());
-    }
+    // walls
+    cmds.spawn(Wall::new(WallLocation::Left));
+    cmds.spawn(Wall::new(WallLocation::Right));
+    cmds.spawn(Wall::new(WallLocation::Top));
+    cmds.spawn(Wall::new(WallLocation::Bottom));
+
+    // player
+    cmds.spawn((
+        Player,
+        Sprite {
+            color: PLAYER_COLOR,
+            custom_size: Some(PLAYER_SIZE),
+            ..default()
+        },
+        Transform::from_xyz(0.0, BOTTOM_WALL + PLAYER_FLOOR_GAP, 0.0),
+    ));
 }
 
 #[derive(Component)]
-struct Person;
+struct Player;
 
-#[derive(Component)]
-struct Name(String);
-
-#[derive(Resource)]
-struct GreetTimer(Timer);
-
-fn add_people(mut commands: Commands) {
-    commands.spawn((Person, Name("Elaina Proctor".to_string())));
-    commands.spawn((Person, Name("Renzo Hume".to_string())));
-    commands.spawn((Person, Name("Zayna Nieves".to_string())));
-}
-
-fn greet_people(
-    time: Res<Time>,
-    mut timer: ResMut<GreetTimer>,
-    people: Query<&Name, With<Person>>,
+fn move_player(
+    keyboard: Res<ButtonInput<KeyCode>>,
+    mut player: Single<&mut Transform, With<Player>>,
 ) {
-    if timer.0.tick(time.delta()).just_finished() {
-        for name in people.iter() {
-            println!("Hello {}!", name.0);
-        }
-    }
-}
+    let mut direction = 0.0;
 
-fn update_people(mut query: Query<&mut Name, With<Person>>) {
-    for mut name in &mut query {
-        if name.0 == "Elaina Proctor" {
-            name.0 = "Elaina Hume".to_string();
-            break; // We don't need to change any other names.
-        }
+    if keyboard.pressed(KeyCode::ArrowLeft) || keyboard.pressed(KeyCode::KeyA) {
+        direction -= 1.0;
     }
+    if keyboard.pressed(KeyCode::ArrowRight) || keyboard.pressed(KeyCode::KeyD) {
+        direction += 1.0;
+    }
+
+    let new_position = player.translation.x + direction * PLAYER_SPEED;
+    let left_bound = LEFT_WALL + PLAYER_SIZE.x / 2.0 + PLAYER_PADDING;
+    let right_bound = RIGHT_WALL - PLAYER_SIZE.x / 2.0 - PLAYER_PADDING;
+    player.translation.x = new_position.clamp(left_bound, right_bound);
 }
