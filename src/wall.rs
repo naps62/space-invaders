@@ -34,10 +34,10 @@ pub enum WallLocation {
 impl WallLocation {
     fn position(&self) -> Vec2 {
         match self {
-            WallLocation::Left => Vec2::new(LEFT_WALL, 0.0),
-            WallLocation::Right => Vec2::new(RIGHT_WALL, 0.0),
-            WallLocation::Top => Vec2::new(0.0, TOP_WALL),
-            WallLocation::Bottom => Vec2::new(0.0, BOTTOM_WALL),
+            WallLocation::Left => Vec2::new(-ARENA_SIZE.x / 2.0, 0.0),
+            WallLocation::Right => Vec2::new(ARENA_SIZE.x / 2.0, 0.0),
+            WallLocation::Top => Vec2::new(0.0, ARENA_SIZE.y / 2.0),
+            WallLocation::Bottom => Vec2::new(0.0, -ARENA_SIZE.y / 2.0),
         }
     }
 
@@ -51,16 +51,13 @@ impl WallLocation {
     }
 
     fn size(&self) -> Vec2 {
-        let arena_height = TOP_WALL - BOTTOM_WALL;
-        let arena_width = RIGHT_WALL - LEFT_WALL;
-
         match self {
             //WallLocation::Left => Vec2::new(WALL_THICKNESS, arena_height),
             WallLocation::Left | WallLocation::Right => {
-                Vec2::new(WALL_THICKNESS, arena_height + WALL_THICKNESS)
+                Vec2::new(WALL_THICKNESS, ARENA_SIZE.y + WALL_THICKNESS)
             }
             WallLocation::Top | WallLocation::Bottom => {
-                Vec2::new(arena_width + WALL_THICKNESS, WALL_THICKNESS)
+                Vec2::new(ARENA_SIZE.x + WALL_THICKNESS, WALL_THICKNESS)
             }
         }
     }
