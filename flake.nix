@@ -34,12 +34,20 @@
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
+          alsa-lib
+          udev
+          vulkan-loader
+          libxkbcommon
+          mold-wrapped
         ];
         libraries = with pkgs; [
           alsa-lib
           udev
           vulkan-loader
           libxkbcommon
+          xorg.libX11
+          xorg.libXi
+          xorg.libXcursor
         ];
       in
       with pkgs;
@@ -50,6 +58,8 @@
           shellHook = ''
             export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:${lib.makeLibraryPath libraries}"
           '';
+
+          stdenv = pkgs.stdenvAdapters.useMoldLinker pkgs.stdenv;
         };
       }
     );
