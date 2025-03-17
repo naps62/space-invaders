@@ -32,7 +32,7 @@ fn main() {
         .run();
 }
 
-fn startup(mut cmds: Commands) {
+fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
     // camera
     cmds.spawn((
         Camera2d,
@@ -68,6 +68,7 @@ fn startup(mut cmds: Commands) {
     ));
 
     // enemies
+    let enemy_sprite = assets.load("Invader_01-1.png");
     cmds.spawn(EnemySquadBundle::default())
         .with_children(|squad| {
             // starting position for enemies
@@ -79,7 +80,11 @@ fn startup(mut cmds: Commands) {
                 let mut current_enemy_pos = enemy_start;
                 current_enemy_pos.y -= (ENEMY_SIZE.y + ENEMY_SPACING) * y as f32;
                 for _x in 0..5 {
-                    squad.spawn(EnemyBundle::new(current_enemy_pos, ENEMY_SIZE));
+                    squad.spawn(EnemyBundle::new(
+                        current_enemy_pos,
+                        ENEMY_SIZE,
+                        enemy_sprite.clone(),
+                    ));
                     current_enemy_pos.x += ENEMY_SIZE.x + ENEMY_SPACING;
                 }
             }

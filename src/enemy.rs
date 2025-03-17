@@ -12,10 +12,10 @@ pub struct EnemyBundle {
 }
 
 impl EnemyBundle {
-    pub fn new(location: Vec2, size: Vec2) -> Self {
+    pub fn new(location: Vec2, size: Vec2, image: Handle<Image>) -> Self {
         Self {
             sprite: Sprite {
-                color: ENEMY_COLOR,
+                image,
                 custom_size: Some(size),
                 ..default()
             },
