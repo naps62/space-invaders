@@ -43,6 +43,7 @@ fn startup(mut cmds: Commands) {
             },
             ..OrthographicProjection::default_2d()
         }),
+        Transform::from_xyz(ARENA_SIZE.x / 2.0, ARENA_SIZE.y / 2.0, 0.0),
     ));
 
     // walls
@@ -59,7 +60,11 @@ fn startup(mut cmds: Commands) {
             custom_size: Some(PLAYER_SIZE),
             ..default()
         },
-        Transform::from_xyz(0.0, -ARENA_SIZE.y / 2.0 + PLAYER_FLOOR_GAP, 0.0),
+        Transform::from_xyz(
+            ARENA_SIZE.x / 2. - PLAYER_SIZE.x / 2.,
+            PLAYER_FLOOR_GAP,
+            0.0,
+        ),
     ));
 
     // enemies
@@ -67,8 +72,8 @@ fn startup(mut cmds: Commands) {
         .with_children(|squad| {
             // starting position for enemies
             let enemy_start = Vec2::new(
-                ENEMY_SIZE.x / 2.0 - ARENA_SIZE.x / 2.0 + ENEMY_WALL_GAP,
-                -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y / 2. - ENEMY_WALL_GAP,
+                ENEMY_SIZE.x / 2.0 + ENEMY_WALL_GAP,
+                -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y - ENEMY_WALL_GAP,
             );
             for y in 0..5 {
                 let mut current_enemy_pos = enemy_start;
@@ -107,7 +112,7 @@ fn move_enemies(
     direction: Res<EnemyDirection>,
     mut squad: Single<&mut Transform, With<EnemySquad>>,
 ) {
-    //squad.translation.x += 10.0 * direction.as_f32();
+    squad.translation.x += 10.0 * direction.as_f32();
 }
 
 fn swap_enemy_direction(
@@ -119,8 +124,8 @@ fn swap_enemy_direction(
     for enemy in enemies.iter() {
         let x = enemy.translation().x;
         let needs_reverse = match direction {
-            EnemyDirection::Right => x + ENEMY_SIZE.x / 2. + ENEMY_WALL_GAP >= ARENA_SIZE.x / 2.,
-            EnemyDirection::Left => x - ENEMY_SIZE.x / 2. - ENEMY_WALL_GAP <= -ARENA_SIZE.x / 2.,
+            EnemyDirection::Right => x + ENEMY_SIZE.x / 2. + ENEMY_WALL_GAP >= ARENA_SIZE.x,
+            EnemyDirection::Left => x - ENEMY_SIZE.x / 2. - ENEMY_WALL_GAP <= 0.,
         };
 
         // change direction and lower
