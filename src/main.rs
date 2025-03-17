@@ -1,8 +1,14 @@
 mod constants;
+mod enemy;
+mod enemy_squad;
 mod wall;
 
-use bevy::{prelude::*, render::camera::ScalingMode};
+use std::time::Duration;
+
+use bevy::{prelude::*, render::camera::ScalingMode, time::common_conditions::on_timer};
 use constants::*;
+use enemy::{Enemy, EnemyBundle, EnemyDirection, EnemyDirectionChanged};
+use enemy_squad::{EnemySquad, EnemySquadBundle};
 use wall::{Wall, WallLocation};
 
 fn main() {
@@ -15,8 +21,15 @@ fn main() {
             ..default()
         }))
         .insert_resource(ClearColor(BG_COLOR))
+        .insert_resource(Time::<Fixed>::from_hz(60.0))
+        .insert_resource(EnemyDirection::default())
+        .add_event::<EnemyDirectionChanged>()
         .add_systems(Startup, startup)
-        .add_systems(FixedUpdate, (move_player, move_enemy))
+        .add_systems(
+            Update,
+            (move_enemies.run_if(on_timer(Duration::from_secs_f32(0.1))),),
+        )
+        .add_systems(FixedUpdate, (move_player, swap_enemy_direction))
         .run();
 }
 
@@ -50,23 +63,23 @@ fn startup(mut cmds: Commands) {
         Transform::from_xyz(0.0, -ARENA_SIZE.y / 2.0 + PLAYER_FLOOR_GAP, 0.0),
     ));
 
-    for x in 0..5 {
-        for y in 0..5 {
-            cmds.spawn((
-                Enemy,
-                Sprite {
-                    color: ENEMY_COLOR,
-                    custom_size: Some(ENEMY_SIZE),
-                    ..default()
-                },
-                Transform::from_xyz(
-                    x as f32 * ENEMY_SPACING + ENEMY_SIZE.x / 2.0 - ARENA_SIZE.x / 2.0,
-                    -y as f32 * ENEMY_SPACING - ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y / 2.0,
-                    0.0,
-                ),
-            ));
-        }
-    }
+    // enemies
+    cmds.spawn(EnemySquadBundle::default())
+        .with_children(|squad| {
+            // starting position for enemies
+            let enemy_start = Vec2::new(
+                ENEMY_SPACING + ENEMY_SIZE.x / 2.0 - ARENA_SIZE.x / 2.0,
+                ENEMY_SPACING + ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y / 2.0,
+            );
+            for y in 0..5 {
+                let mut current_enemy_pos = enemy_start;
+                current_enemy_pos.y -= y as f32 * ENEMY_SPACING;
+                for _x in 0..5 {
+                    squad.spawn(EnemyBundle::new(current_enemy_pos, ENEMY_SIZE));
+                    current_enemy_pos.x += ENEMY_SPACING
+                }
+            }
+        });
 }
 
 #[derive(Component)]
@@ -91,11 +104,32 @@ fn move_player(
     player.translation.x = new_position.clamp(left_bound, right_bound);
 }
 
-#[derive(Component)]
-struct Enemy;
+fn move_enemies(
+    direction: Res<EnemyDirection>,
+    mut squad: Single<&mut Transform, With<EnemySquad>>,
+) {
+    squad.translation.x += 10.0 * direction.as_f32();
+}
 
-fn move_enemy(mut enemies: Query<&mut Transform, With<Enemy>>) {
-    for mut enemy in enemies.iter_mut() {
-        enemy.translation.x += 1.0;
+fn swap_enemy_direction(
+    current: ResMut<EnemyDirection>,
+    enemies: Query<&GlobalTransform, With<Enemy>>,
+    squad: Single<&mut Transform, With<EnemySquad>>,
+) {
+    let direction = current.into_inner();
+    for enemy in enemies.iter() {
+        let x = enemy.translation().x;
+        let needs_reverse = match direction {
+            EnemyDirection::Right => x + ENEMY_SPACING >= ARENA_SIZE.x / 2.0,
+            EnemyDirection::Left => x - ENEMY_SPACING <= -ARENA_SIZE.x / 2.0,
+        };
+
+        // change direction and lower
+        if needs_reverse {
+            direction.reverse();
+            let mut squad = squad.into_inner();
+            squad.translation.y -= 5.0;
+            return;
+        }
     }
 }
