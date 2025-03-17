@@ -23,7 +23,6 @@ fn main() {
         .insert_resource(ClearColor(BG_COLOR))
         .insert_resource(Time::<Fixed>::from_hz(60.0))
         .insert_resource(EnemyDirection::default())
-        .add_event::<EnemyDirectionChanged>()
         .add_systems(Startup, startup)
         .add_systems(
             Update,
@@ -68,15 +67,15 @@ fn startup(mut cmds: Commands) {
         .with_children(|squad| {
             // starting position for enemies
             let enemy_start = Vec2::new(
-                ENEMY_SPACING + ENEMY_SIZE.x / 2.0 - ARENA_SIZE.x / 2.0,
-                ENEMY_SPACING + ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y / 2.0,
+                ENEMY_SIZE.x / 2.0 - ARENA_SIZE.x / 2.0 + ENEMY_WALL_GAP,
+                -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y / 2. - ENEMY_WALL_GAP,
             );
             for y in 0..5 {
                 let mut current_enemy_pos = enemy_start;
-                current_enemy_pos.y -= y as f32 * ENEMY_SPACING;
+                current_enemy_pos.y -= (ENEMY_SIZE.y + ENEMY_SPACING) * y as f32;
                 for _x in 0..5 {
                     squad.spawn(EnemyBundle::new(current_enemy_pos, ENEMY_SIZE));
-                    current_enemy_pos.x += ENEMY_SPACING
+                    current_enemy_pos.x += ENEMY_SIZE.x + ENEMY_SPACING;
                 }
             }
         });
@@ -108,7 +107,7 @@ fn move_enemies(
     direction: Res<EnemyDirection>,
     mut squad: Single<&mut Transform, With<EnemySquad>>,
 ) {
-    squad.translation.x += 10.0 * direction.as_f32();
+    //squad.translation.x += 10.0 * direction.as_f32();
 }
 
 fn swap_enemy_direction(
@@ -120,8 +119,8 @@ fn swap_enemy_direction(
     for enemy in enemies.iter() {
         let x = enemy.translation().x;
         let needs_reverse = match direction {
-            EnemyDirection::Right => x + ENEMY_SPACING >= ARENA_SIZE.x / 2.0,
-            EnemyDirection::Left => x - ENEMY_SPACING <= -ARENA_SIZE.x / 2.0,
+            EnemyDirection::Right => x + ENEMY_SIZE.x / 2. + ENEMY_WALL_GAP >= ARENA_SIZE.x / 2.,
+            EnemyDirection::Left => x - ENEMY_SIZE.x / 2. - ENEMY_WALL_GAP <= -ARENA_SIZE.x / 2.,
         };
 
         // change direction and lower
