@@ -1,22 +1,21 @@
 use std::time::Duration;
 
-use crate::constants::*;
-use bevy::{
-    prelude::*,
-    time::{common_conditions::on_timer, Stopwatch},
-};
+use crate::{constants::*, projectiles};
+use bevy::{prelude::*, time::common_conditions::on_timer};
+use rand::Rng as _;
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyDirection::default())
+            .insert_resource(ShootTimer::default())
             .add_systems(Startup, startup)
             .add_systems(
                 Update,
                 move_enemies.run_if(on_timer(Duration::from_secs_f32(0.5))),
             )
-            .add_systems(FixedUpdate, swap_enemy_direction);
+            .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
     }
 }
 
@@ -117,15 +116,6 @@ impl EnemyDirection {
     }
 }
 
-#[derive(Resource)]
-pub struct EnemyShootTimer(Stopwatch);
-
-impl Default for EnemyShootTimer {
-    fn default() -> Self {
-        Self(Stopwatch::new())
-    }
-}
-
 fn move_enemies(
     direction: Res<EnemyDirection>,
     mut transforms: Query<&mut Transform, With<Enemy>>,
@@ -164,5 +154,39 @@ fn swap_enemy_direction(
         for mut enemy in enemies.iter_mut() {
             enemy.translation.y -= 5.0;
         }
+    }
+}
+
+#[derive(Resource)]
+struct ShootTimer(Timer);
+
+impl Default for ShootTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(1., TimerMode::Once))
+    }
+}
+
+fn shoot(
+    cmds: Commands,
+    assets: Res<AssetServer>,
+    time: Res<Time>,
+    mut timer: ResMut<ShootTimer>,
+    enemies: Query<&mut Transform, With<Enemy>>,
+) {
+    timer.0.tick(time.delta());
+
+    if timer.0.finished() {
+        timer.0.reset();
+
+        let mut rng = rand::rng();
+        let rand = rng.random_range(0..enemies.iter().len());
+
+        let enemy = enemies.iter().nth(rand).unwrap();
+
+        projectiles::spawn_enemy_projectiles(
+            cmds,
+            assets,
+            Vec2::new(enemy.translation.x, enemy.translation.y - ENEMY_SIZE.y / 2.),
+        );
     }
 }

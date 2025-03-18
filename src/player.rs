@@ -1,4 +1,7 @@
-use crate::{constants::*, projectiles::PlayerProjectile};
+use crate::{
+    constants::*,
+    projectiles::{self},
+};
 use bevy::prelude::*;
 
 pub struct PlayerPlugin;
@@ -56,7 +59,7 @@ pub struct PlayerShootTimer(Timer);
 
 impl Default for PlayerShootTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(1., TimerMode::Once))
+        Self(Timer::from_seconds(0.5, TimerMode::Once))
     }
 }
 
@@ -64,23 +67,21 @@ fn player_shoot(
     time: Res<Time>,
     keyboard: Res<ButtonInput<KeyCode>>,
     player: Single<&mut Transform, With<Player>>,
-    assets: ResMut<AssetServer>,
+    assets: Res<AssetServer>,
     mut timer: ResMut<PlayerShootTimer>,
-    mut cmds: Commands,
+    cmds: Commands,
 ) {
     timer.0.tick(time.delta());
 
     if timer.0.finished() && keyboard.just_pressed(KeyCode::Space) {
         timer.0.reset();
-        let projectile = assets.load("projectiles/player.png");
-        cmds.spawn((
-            Sprite::from_image(projectile),
-            Transform::from_xyz(
+        projectiles::spawn_player_projectiles(
+            cmds,
+            assets,
+            Vec2::new(
                 player.translation.x,
                 player.translation.y + PLAYER_SIZE.y / 2.,
-                0.0,
             ),
-            PlayerProjectile,
-        ));
+        );
     }
 }
