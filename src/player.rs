@@ -18,6 +18,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
         Sprite {
             image: player_sprite,
             custom_size: Some(PLAYER_SIZE),
+            color: Color::srgb(0., 1., 0.),
             ..default()
         },
         Transform::from_xyz(
