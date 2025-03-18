@@ -1,7 +1,7 @@
 use bevy::{color::Color, math::Vec2};
 
-pub const BG_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
-pub const WALL_COLOR: Color = Color::srgb(0., 0., 0.);
+pub const WALL_COLOR: Color = Color::srgb(0.15, 0.15, 0.15);
+pub const BG_COLOR: Color = Color::srgb(0., 0., 0.);
 pub const PLAYER_SPEED: f32 = 1.0;
 
 pub const WALL_THICKNESS: f32 = 1000.0;

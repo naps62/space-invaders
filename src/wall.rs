@@ -16,7 +16,7 @@ impl Wall {
                 ..default()
             },
             transform: Transform {
-                translation: location.position().extend(0.0),
+                translation: location.position().extend(1.0),
                 scale: location.size().extend(1.0),
                 ..default()
             },

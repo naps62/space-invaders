@@ -77,6 +77,7 @@ pub struct EnemyBundle {
     enemy: Enemy,
     sprite: Sprite,
     transform: Transform,
+    collider: projectiles::Collider,
 }
 
 impl EnemyBundle {

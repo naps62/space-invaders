@@ -29,6 +29,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
             PLAYER_FLOOR_GAP,
             0.0,
         ),
+        projectiles::Collider,
     ));
 }
 
