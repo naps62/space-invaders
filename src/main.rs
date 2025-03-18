@@ -1,14 +1,14 @@
 mod constants;
 mod enemy;
 mod player;
-mod projectiles;
+mod shots;
 mod wall;
 
 use bevy::{prelude::*, render::camera::ScalingMode};
 use constants::*;
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
-use projectiles::ProjectilePlugin;
+use shots::ProjectilePlugin;
 use wall::{Wall, WallLocation};
 
 fn main() {

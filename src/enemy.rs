@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{constants::*, projectiles};
+use crate::{constants::*, shots};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use rand::Rng as _;
 
@@ -18,6 +18,9 @@ impl Plugin for EnemyPlugin {
             .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
     }
 }
+
+#[derive(Resource)]
+struct ShootTimer(Timer);
 
 fn startup(
     mut cmds: Commands,
@@ -77,7 +80,7 @@ pub struct EnemyBundle {
     enemy: Enemy,
     sprite: Sprite,
     transform: Transform,
-    collider: projectiles::Collider,
+    collider: shots::Collider,
 }
 
 impl EnemyBundle {
@@ -158,9 +161,6 @@ fn swap_enemy_direction(
     }
 }
 
-#[derive(Resource)]
-struct ShootTimer(Timer);
-
 impl Default for ShootTimer {
     fn default() -> Self {
         Self(Timer::from_seconds(1., TimerMode::Once))
@@ -169,7 +169,7 @@ impl Default for ShootTimer {
 
 fn shoot(
     cmds: Commands,
-    assets: Res<projectiles::SpriteWithAtlas>,
+    assets: Res<shots::SpriteWithAtlas>,
     time: Res<Time>,
     mut timer: ResMut<ShootTimer>,
     enemies: Query<&mut Transform, With<Enemy>>,
@@ -184,7 +184,7 @@ fn shoot(
 
         let enemy = enemies.iter().nth(rand).unwrap();
 
-        projectiles::spawn_enemy_projectiles(
+        shots::spawn_enemy_shots(
             cmds,
             assets,
             Vec2::new(enemy.translation.x, enemy.translation.y - ENEMY_SIZE.y / 2.),

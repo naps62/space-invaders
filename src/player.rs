@@ -1,6 +1,6 @@
 use crate::{
     constants::*,
-    projectiles::{self},
+    shots::{self},
 };
 use bevy::prelude::*;
 
@@ -29,7 +29,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
             PLAYER_FLOOR_GAP,
             0.0,
         ),
-        projectiles::Collider,
+        shots::Collider,
     ));
 }
 
@@ -76,7 +76,7 @@ fn player_shoot(
 
     if timer.0.finished() && keyboard.just_pressed(KeyCode::Space) {
         timer.0.reset();
-        projectiles::spawn_player_projectiles(
+        shots::spawn_player_shots(
             cmds,
             assets,
             Vec2::new(
