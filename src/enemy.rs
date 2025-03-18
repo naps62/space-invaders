@@ -169,7 +169,7 @@ impl Default for ShootTimer {
 
 fn shoot(
     cmds: Commands,
-    assets: Res<AssetServer>,
+    assets: Res<projectiles::SpriteWithAtlas>,
     time: Res<Time>,
     mut timer: ResMut<ShootTimer>,
     enemies: Query<&mut Transform, With<Enemy>>,

@@ -13,6 +13,7 @@ impl Plugin for ProjectilePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<EnemyHit>()
             .add_event::<PlayerHit>()
+            .add_systems(Startup, startup)
             .add_systems(
                 FixedUpdate,
                 (
@@ -25,6 +26,34 @@ impl Plugin for ProjectilePlugin {
                 ),
             );
     }
+}
+
+#[derive(Resource)]
+pub struct SpriteWithAtlas(Sprite);
+
+fn startup(
+    mut cmds: Commands,
+    assets: Res<AssetServer>,
+    mut atlas: ResMut<Assets<TextureAtlasLayout>>,
+) {
+    let a1 = assets.load("projectiles/enemy_a.png");
+    let a1_atlas = atlas.add(TextureAtlasLayout::from_grid(
+        UVec2::new(3, 7),
+        4,
+        1,
+        Some(UVec2::splat(1)),
+        None,
+    ));
+    let mut sprite = Sprite::from_atlas_image(
+        a1,
+        TextureAtlas {
+            layout: a1_atlas,
+            index: 0,
+        },
+    );
+    sprite.custom_size = Some(Vec2::new(1., 4.));
+
+    cmds.insert_resource(SpriteWithAtlas(sprite));
 }
 
 #[derive(Component, Default)]
@@ -42,10 +71,8 @@ pub fn spawn_player_projectiles(mut cmds: Commands, assets: Res<AssetServer>, po
     ));
 }
 
-pub fn spawn_enemy_projectiles(mut cmds: Commands, assets: Res<AssetServer>, position: Vec2) {
-    let projectile = assets.load("projectiles/enemy_a.png");
-    let mut sprite = Sprite::from_image(projectile);
-    sprite.custom_size = Some(Vec2::new(1., 4.));
+pub fn spawn_enemy_projectiles(mut cmds: Commands, sprite: Res<SpriteWithAtlas>, position: Vec2) {
+    let sprite = sprite.0.clone();
     cmds.spawn((
         sprite,
         Transform::from_xyz(position.x, position.y, 0.0),
@@ -58,8 +85,8 @@ pub fn spawn_enemy_projectiles(mut cmds: Commands, assets: Res<AssetServer>, pos
 struct PlayerProjectile;
 
 fn move_player_projectiles(mut projectiles: Query<&mut Transform, With<PlayerProjectile>>) {
-    for mut projectile in projectiles.iter_mut() {
-        projectile.translation.y += PLAYER_PROJECTILE_SPEED;
+    for mut transform in projectiles.iter_mut() {
+        transform.translation.y += PLAYER_PROJECTILE_SPEED;
     }
 }
 
@@ -77,9 +104,14 @@ pub struct PlayerHit {
     projectile: Entity,
 }
 
-fn move_enemy_projectiles(mut projectiles: Query<&mut Transform, With<EnemyProjectile>>) {
-    for mut projectile in projectiles.iter_mut() {
-        projectile.translation.y -= ENEMY_PROJECTILE_SPEED;
+fn move_enemy_projectiles(
+    mut projectiles: Query<(&mut Transform, &mut Sprite), With<EnemyProjectile>>,
+) {
+    for (mut transform, mut sprite) in projectiles.iter_mut() {
+        transform.translation.y -= ENEMY_PROJECTILE_SPEED;
+        if let Some(atlas) = &mut sprite.texture_atlas {
+            atlas.index = (atlas.index + 1) % 4;
+        }
     }
 }
 
