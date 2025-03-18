@@ -11,13 +11,12 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyDirection::default())
-            .insert_resource(EnemyShootTimer::default())
             .add_systems(Startup, startup)
             .add_systems(
                 Update,
                 move_enemies.run_if(on_timer(Duration::from_secs_f32(0.5))),
             )
-            .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
+            .add_systems(FixedUpdate, swap_enemy_direction);
     }
 }
 
@@ -166,13 +165,4 @@ fn swap_enemy_direction(
             enemy.translation.y -= 5.0;
         }
     }
-}
-
-fn shoot(
-    mut commands: Commands,
-    mut enemies: Query<(&mut Transform, &mut EnemyShootTimer)>,
-    time: Res<Time>,
-    mut stopwatch: ResMut<EnemyShootTimer>,
-) {
-    stopwatch.0.tick(time.delta());
 }
