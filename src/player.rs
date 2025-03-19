@@ -29,7 +29,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
             PLAYER_FLOOR_GAP,
             0.0,
         ),
-        shots::Collider,
+        shots::Collider::player_layer(),
     ));
 }
 

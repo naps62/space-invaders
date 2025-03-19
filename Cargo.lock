@@ -315,6 +315,7 @@ name = "bevy-space-invaders"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bitflags 2.9.0",
  "rand 0.9.0",
 ]
 

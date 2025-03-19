@@ -8,7 +8,7 @@ use bevy::{prelude::*, render::camera::ScalingMode};
 use constants::*;
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
-use shots::ProjectilePlugin;
+use shots::ShotPlugin;
 use wall::{Wall, WallLocation};
 
 fn main() {
@@ -28,7 +28,7 @@ fn main() {
         .insert_resource(Time::<Fixed>::from_hz(60.0))
         .add_plugins(PlayerPlugin)
         .add_plugins(EnemyPlugin)
-        .add_plugins(ProjectilePlugin)
+        .add_plugins(ShotPlugin)
         .add_systems(Startup, startup)
         .run();
 }

@@ -1,10 +1,11 @@
-use crate::constants::*;
+use crate::{constants::*, shots::Collider};
 use bevy::{prelude::*, sprite::Anchor};
 
 #[derive(Bundle)]
 pub struct Wall {
     sprite: Sprite,
     transform: Transform,
+    collider: Collider,
 }
 
 impl Wall {
@@ -20,6 +21,7 @@ impl Wall {
                 scale: location.size().extend(1.0),
                 ..default()
             },
+            collider: Collider::wall_layer(),
         }
     }
 }

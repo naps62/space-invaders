@@ -75,7 +75,7 @@ fn startup(
 #[derive(Component, Default)]
 pub struct Enemy;
 
-#[derive(Bundle, Default)]
+#[derive(Bundle)]
 pub struct EnemyBundle {
     enemy: Enemy,
     sprite: Sprite,
@@ -86,9 +86,10 @@ pub struct EnemyBundle {
 impl EnemyBundle {
     pub fn new(location: Vec2, sprite: Sprite) -> Self {
         Self {
+            enemy: default(),
             sprite,
             transform: Transform::from_translation(location.extend(0.0)),
-            ..default()
+            collider: shots::Collider::enemy_layer(),
         }
     }
 }
