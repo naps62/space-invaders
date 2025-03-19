@@ -70,6 +70,22 @@ impl Collider {
     pub fn should_collide(a: &Collider, b: &Collider) -> bool {
         a.mask.intersects(b.layer) && b.mask.intersects(a.layer)
     }
+
+    pub fn is_player(&self) -> bool {
+        self.layer.intersects(Layer::PLAYER)
+    }
+
+    pub fn is_enemy(&self) -> bool {
+        self.layer.intersects(Layer::ENEMY)
+    }
+
+    pub fn is_player_shot(&self) -> bool {
+        self.layer.intersects(Layer::PLAYER_SHOT)
+    }
+
+    pub fn is_enemy_shot(&self) -> bool {
+        self.layer.intersects(Layer::ENEMY_SHOT)
+    }
 }
 
 #[derive(Resource)]
@@ -143,6 +159,9 @@ fn move_enemy_shots(mut shots: Query<(&mut Transform, &mut Sprite), With<EnemySh
     }
 }
 
+#[derive(Component)]
+struct Hit(Entity);
+
 fn check_collisions(
     mut cmds: Commands,
     colliders: Query<(Entity, &Transform, &Sprite, &Collider)>,
@@ -151,10 +170,6 @@ fn check_collisions(
     for [a, b] in colliders.iter_combinations() {
         let (entity_a, transform_a, sprite_a, collider_a) = a;
         let (entity_b, transform_b, sprite_b, collider_b) = b;
-
-        if entity_a == entity_b {
-            continue;
-        }
 
         if !Collider::should_collide(collider_a, collider_b) {
             continue;
@@ -172,60 +187,37 @@ fn check_collisions(
         if !box_a.intersects(&box_b) {
             continue;
         }
+
+        if collider_a.is_player() && collider_b.is_enemy_shot() {
+            on_player_hit(&mut cmds, entity_a, entity_b);
+        } else if collider_a.is_enemy_shot() && collider_b.is_player() {
+            on_player_hit(&mut cmds, entity_b, entity_a);
+        } else if collider_a.is_player_shot() && collider_b.is_enemy() {
+            on_enemy_hit(&mut cmds, entity_b, entity_a);
+        } else if collider_a.is_enemy() && collider_b.is_player_shot() {
+            on_enemy_hit(&mut cmds, entity_a, entity_b);
+        }
     }
+}
 
-    //for (entity_a, transform_a, sprite_a, maybe_img_a, collider_a) in &colliders {
-    //    for (entity_b, transform_b, sprite_b, maybe_img_b, collider_b) in &colliders {
-    //        if entity_a == entity_b {
-    //            continue;
-    //        }
-    //
-    //        if !Collider::should_collide(collider_a, collider_b) {
-    //            continue;
-    //        }
-    //
-    //        let box_a = Aabb2d::new(
-    //            projectile_transform.translation.truncate(),
-    //            sprite_a.image.size() * transform_b.scale.truncate() / 2.,
-    //        );
-    //
-    //        let box_b = Aabb2d::new(
-    //            transform_a.translation.truncate(),
-    //            sprite_b.image.size() * transform_b.scale.truncate() / 2.,
-    //        );
+fn on_player_hit(cmds: &mut Commands, _player: Entity, shot: Entity) {
+    dbg!("player hit");
+    cmds.entity(shot).despawn();
+}
 
-    //for (projectile_entity, projectile_transform, projectile_sprite) in &shots {
-    //    let projectile_box = Aabb2d::new(
-    //        projectile_transform.translation.truncate(),
-    //        projectile_sprite.custom_size.unwrap() * projectile_transform.scale.truncate()
-    //            / 2.,
-    //    );
-    //
-    //    if projectile_box.intersects(&collider_box) {
-    //        cmds.entity(projectile_entity).remove::<Shot>();
-    //        //let entity_type = if cmds.entity(entity_a).con
-    //        events.send(CollisionEvent(
-    //            ShotEntity::PlayerShot(projectile_entity),
-    //            ColliderEntity::collider(entity_a),
-    //        ));
-    //        break;
-    //    }
-    //}
-    //    }
-    //}
+fn on_enemy_hit(cmds: &mut Commands, enemy: Entity, shot: Entity) {
+    cmds.entity(enemy).despawn();
+    cmds.entity(shot).despawn();
 }
 
 fn size(sprite: &Sprite, transform: &Transform, images: &Res<Assets<Image>>) -> Vec2 {
     let size = if let Some(custom_size) = sprite.custom_size {
         custom_size
     } else if let Some(image) = images.get(&sprite.image) {
-        dbg!("her");
         image.size().as_vec2()
     } else {
         Vec2::new(1.0, 1.0)
     };
 
-    let res = size * transform.scale.truncate();
-
-    res
+    size * transform.scale.truncate()
 }
