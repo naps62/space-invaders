@@ -35,9 +35,11 @@ bitflags::bitflags! {
 }
 
 #[derive(Component, Default)]
+#[component(storage = "SparseSet")]
 struct PlayerShot;
 
 #[derive(Component, Default)]
+#[component(storage = "SparseSet")]
 struct EnemyShot;
 
 #[derive(Component)]
@@ -178,12 +180,12 @@ fn check_collisions(
         }
         let box_a = Aabb2d::new(
             transform_a.translation.truncate(),
-            size(sprite_a, transform_a, &images) / 3.,
+            size(sprite_a, transform_a, &images) / Vec2::new(2.0, 3.0),
         );
 
         let box_b = Aabb2d::new(
             transform_b.translation.truncate(),
-            size(sprite_b, transform_b, &images) / 3.,
+            size(sprite_b, transform_b, &images) / Vec2::new(2.0, 3.0),
         );
 
         if !box_a.intersects(&box_b) {
