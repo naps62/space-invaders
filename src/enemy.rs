@@ -1,6 +1,9 @@
 use std::time::Duration;
 
-use crate::{constants::*, shots};
+use crate::{
+    constants::*,
+    shots::{self, Hit},
+};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use rand::Rng as _;
 
@@ -46,7 +49,7 @@ fn startup(
     // starting position for enemies
     let enemy_start = Vec2::new(
         ENEMY_SIZE.x / 2.0 + ENEMY_WALL_GAP,
-        -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y - ENEMY_WALL_GAP,
+        -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y - 40.,
     );
     for y in 0..5 {
         let mut current_enemy_pos = enemy_start;
@@ -66,7 +69,8 @@ fn startup(
             );
             sprite.custom_size = Some(atlas.2 / 2.);
 
-            cmds.spawn(EnemyBundle::new(current_enemy_pos, sprite));
+            cmds.spawn(EnemyBundle::new(current_enemy_pos, sprite))
+                .observe(on_hit);
             current_enemy_pos.x += 12. + ENEMY_SPACING;
         }
     }
@@ -191,4 +195,8 @@ fn shoot(
             Vec2::new(enemy.translation.x, enemy.translation.y - ENEMY_SIZE.y / 2.),
         );
     }
+}
+
+fn on_hit(trigger: Trigger<Hit>, mut cmds: Commands) {
+    cmds.entity(trigger.entity()).despawn();
 }

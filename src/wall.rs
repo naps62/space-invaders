@@ -1,15 +1,30 @@
 use crate::{constants::*, shots::Collider};
 use bevy::{prelude::*, sprite::Anchor};
 
+pub struct WallPlugin;
+
+impl Plugin for WallPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, startup);
+    }
+}
+
+fn startup(mut cmds: Commands) {
+    cmds.spawn(Wall::new(WallLocation::Left));
+    cmds.spawn(Wall::new(WallLocation::Right));
+    cmds.spawn(Wall::new(WallLocation::Top));
+    cmds.spawn(Wall::new(WallLocation::Bottom));
+}
+
 #[derive(Bundle)]
-pub struct Wall {
+struct Wall {
     sprite: Sprite,
     transform: Transform,
     collider: Collider,
 }
 
 impl Wall {
-    pub fn new(location: WallLocation) -> Self {
+    fn new(location: WallLocation) -> Self {
         Self {
             sprite: Sprite {
                 color: WALL_COLOR,
@@ -26,7 +41,7 @@ impl Wall {
     }
 }
 
-pub enum WallLocation {
+enum WallLocation {
     Left,
     Right,
     Top,
@@ -36,10 +51,10 @@ pub enum WallLocation {
 impl WallLocation {
     fn position(&self) -> Vec2 {
         match self {
-            WallLocation::Left => Vec2::new(0., 0.),
-            WallLocation::Right => Vec2::new(ARENA_SIZE.x, 0.0),
-            WallLocation::Top => Vec2::new(0.0, ARENA_SIZE.y),
-            WallLocation::Bottom => Vec2::new(0.0, 0.),
+            WallLocation::Left => Vec2::new(0., ARENA_SIZE.y / 2.),
+            WallLocation::Right => Vec2::new(ARENA_SIZE.x, ARENA_SIZE.y / 2.),
+            WallLocation::Top => Vec2::new(ARENA_SIZE.x / 2., ARENA_SIZE.y),
+            WallLocation::Bottom => Vec2::new(ARENA_SIZE.x / 2., 0.),
         }
     }
 

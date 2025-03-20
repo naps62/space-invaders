@@ -1,6 +1,7 @@
 mod constants;
 mod enemy;
 mod player;
+mod shield;
 mod shots;
 mod wall;
 
@@ -8,8 +9,9 @@ use bevy::{prelude::*, render::camera::ScalingMode};
 use constants::*;
 use enemy::EnemyPlugin;
 use player::PlayerPlugin;
+use shield::ShieldPlugin;
 use shots::ShotPlugin;
-use wall::{Wall, WallLocation};
+use wall::WallPlugin;
 
 fn main() {
     App::new()
@@ -26,8 +28,10 @@ fn main() {
         )
         .insert_resource(ClearColor(BG_COLOR))
         .insert_resource(Time::<Fixed>::from_hz(60.0))
+        .add_plugins(WallPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(EnemyPlugin)
+        .add_plugins(ShieldPlugin)
         .add_plugins(ShotPlugin)
         .add_systems(Startup, startup)
         .run();
@@ -46,10 +50,4 @@ fn startup(mut cmds: Commands) {
         }),
         Transform::from_xyz(ARENA_SIZE.x / 2.0, ARENA_SIZE.y / 2.0, 0.0),
     ));
-
-    // walls
-    cmds.spawn(Wall::new(WallLocation::Left));
-    cmds.spawn(Wall::new(WallLocation::Right));
-    cmds.spawn(Wall::new(WallLocation::Top));
-    cmds.spawn(Wall::new(WallLocation::Bottom));
 }

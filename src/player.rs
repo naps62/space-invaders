@@ -1,6 +1,6 @@
 use crate::{
     constants::*,
-    shots::{self},
+    shots::{self, Hit},
 };
 use bevy::prelude::*;
 
@@ -24,13 +24,14 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
             color: Color::srgb(0., 1., 0.),
             ..default()
         },
-        Transform::from_xyz(
-            ARENA_SIZE.x / 2. - PLAYER_SIZE.x / 2.,
-            PLAYER_FLOOR_GAP,
-            0.0,
-        ),
+        Transform::from_xyz(ARENA_SIZE.x / 2., PLAYER_FLOOR_GAP, 0.0),
         shots::Collider::player_layer(),
-    ));
+    ))
+    .observe(on_hit);
+}
+
+fn on_hit(_trigger: Trigger<Hit>, mut _cmds: Commands) {
+    dbg!("player hit");
 }
 
 #[derive(Component)]
