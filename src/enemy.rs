@@ -25,6 +25,12 @@ impl Plugin for EnemyPlugin {
 #[derive(Resource)]
 struct ShootTimer(Timer);
 
+#[derive(Component)]
+struct Shooter;
+
+#[derive(Component)]
+struct NonShooter;
+
 fn startup(
     mut cmds: Commands,
     assets: Res<AssetServer>,
@@ -59,7 +65,7 @@ fn startup(
             1 | 2 => (&enemy_atlas_b, &texture_atlas_layout_b, Vec2::new(22., 16.)),
             _ => (&enemy_atlas_c, &texture_atlas_layout_c, Vec2::new(24., 16.)),
         };
-        for _x in 0..11 {
+        for x in 0..11 {
             let mut sprite = Sprite::from_atlas_image(
                 atlas.0.clone(),
                 TextureAtlas {
@@ -69,33 +75,30 @@ fn startup(
             );
             sprite.custom_size = Some(atlas.2 / 2.);
 
-            cmds.spawn(EnemyBundle::new(current_enemy_pos, sprite))
-                .observe(on_hit);
+            let mut enemy = cmds.spawn((
+                Enemy { x, y },
+                sprite,
+                Transform::from_translation(current_enemy_pos.extend(0.0)),
+                shots::Collider::enemy_layer(),
+            ));
+
+            if y == 4 {
+                enemy.insert(Shooter);
+            } else {
+                enemy.insert(NonShooter);
+            }
+
+            enemy.observe(on_hit);
+
             current_enemy_pos.x += 12. + ENEMY_SPACING;
         }
     }
 }
 
-#[derive(Component, Default)]
-pub struct Enemy;
-
-#[derive(Bundle)]
-pub struct EnemyBundle {
-    enemy: Enemy,
-    sprite: Sprite,
-    transform: Transform,
-    collider: shots::Collider,
-}
-
-impl EnemyBundle {
-    pub fn new(location: Vec2, sprite: Sprite) -> Self {
-        Self {
-            enemy: default(),
-            sprite,
-            transform: Transform::from_translation(location.extend(0.0)),
-            collider: shots::Collider::enemy_layer(),
-        }
-    }
+#[derive(Component, Default, Debug)]
+pub struct Enemy {
+    x: usize,
+    y: usize,
 }
 
 #[derive(Debug, Default, Resource, PartialEq, Eq)]
@@ -177,7 +180,7 @@ fn shoot(
     assets: Res<shots::SpriteWithAtlas>,
     time: Res<Time>,
     mut timer: ResMut<ShootTimer>,
-    enemies: Query<&mut Transform, With<Enemy>>,
+    enemies: Query<&mut Transform, With<Shooter>>,
 ) {
     timer.0.tick(time.delta());
 
@@ -197,6 +200,23 @@ fn shoot(
     }
 }
 
-fn on_hit(trigger: Trigger<Hit>, mut cmds: Commands) {
-    cmds.entity(trigger.entity()).despawn();
+fn on_hit(
+    trigger: Trigger<Hit>,
+    mut cmds: Commands,
+    shooters: Query<&Enemy, With<Shooter>>,
+    non_shooters: Query<(Entity, &Enemy), Without<Shooter>>,
+) {
+    let entity = trigger.entity();
+
+    cmds.entity(entity).despawn();
+    // if the hit enemy was a shooter, find the next shooter above and promote it
+    if let Ok(coords) = shooters.get(entity) {
+        if let Some(promotee) = non_shooters
+            .iter()
+            .filter(|(_, candidate_coords)| candidate_coords.x == coords.x)
+            .max_by_key(|(_, e)| e.y)
+        {
+            cmds.entity(promotee.0).insert(Shooter);
+        }
+    }
 }
