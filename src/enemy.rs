@@ -13,7 +13,7 @@ impl Plugin for EnemyPlugin {
             .add_systems(Startup, startup)
             .add_systems(
                 Update,
-                move_enemies.run_if(on_timer(Duration::from_secs_f32(0.5))),
+                move_enemies.run_if(on_timer(Duration::from_secs_f32(1.))),
             )
             .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
     }
