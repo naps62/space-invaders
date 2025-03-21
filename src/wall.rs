@@ -28,7 +28,7 @@ impl Wall {
         Self {
             sprite: Sprite {
                 color: WALL_COLOR,
-                anchor: location.anchor(),
+                //anchor: location.anchor(),
                 ..default()
             },
             transform: Transform {

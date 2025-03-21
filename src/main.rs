@@ -1,17 +1,14 @@
+mod camera;
 mod constants;
 mod enemy;
 mod player;
 mod shield;
 mod shots;
+mod ui;
 mod wall;
 
-use bevy::{prelude::*, render::camera::ScalingMode};
+use bevy::prelude::*;
 use constants::*;
-use enemy::EnemyPlugin;
-use player::PlayerPlugin;
-use shield::ShieldPlugin;
-use shots::ShotPlugin;
-use wall::WallPlugin;
 
 fn main() {
     App::new()
@@ -28,26 +25,12 @@ fn main() {
         )
         .insert_resource(ClearColor(BG_COLOR))
         .insert_resource(Time::<Fixed>::from_hz(60.0))
-        .add_plugins(WallPlugin)
-        .add_plugins(PlayerPlugin)
-        .add_plugins(EnemyPlugin)
-        .add_plugins(ShieldPlugin)
-        .add_plugins(ShotPlugin)
-        .add_systems(Startup, startup)
+        .add_plugins(wall::WallPlugin)
+        .add_plugins(player::PlayerPlugin)
+        .add_plugins(enemy::EnemyPlugin)
+        .add_plugins(shield::ShieldPlugin)
+        .add_plugins(shots::ShotPlugin)
+        .add_plugins(ui::UiPlugin)
+        .add_plugins(camera::CameraPlugin)
         .run();
-}
-
-fn startup(mut cmds: Commands) {
-    // camera
-    cmds.spawn((
-        Camera2d,
-        Projection::Orthographic(OrthographicProjection {
-            scaling_mode: ScalingMode::AutoMin {
-                min_width: ARENA_SIZE.x,
-                min_height: ARENA_SIZE.y,
-            },
-            ..OrthographicProjection::default_2d()
-        }),
-        Transform::from_xyz(ARENA_SIZE.x / 2.0, ARENA_SIZE.y / 2.0, 0.0),
-    ));
 }
