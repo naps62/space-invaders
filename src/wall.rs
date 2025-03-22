@@ -1,5 +1,5 @@
 use crate::{constants::*, shots::Collider};
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::prelude::*;
 
 pub struct WallPlugin;
 
@@ -18,7 +18,6 @@ fn startup(mut cmds: Commands) {
 
 #[derive(Bundle)]
 struct Wall {
-    sprite: Sprite,
     transform: Transform,
     collider: Collider,
 }
@@ -26,11 +25,6 @@ struct Wall {
 impl Wall {
     fn new(location: WallLocation) -> Self {
         Self {
-            sprite: Sprite {
-                color: WALL_COLOR,
-                //anchor: location.anchor(),
-                ..default()
-            },
             transform: Transform {
                 translation: location.position().extend(1.0),
                 scale: location.size().extend(1.0),
@@ -55,15 +49,6 @@ impl WallLocation {
             WallLocation::Right => Vec2::new(ARENA_SIZE.x, ARENA_SIZE.y / 2.),
             WallLocation::Top => Vec2::new(ARENA_SIZE.x / 2., ARENA_SIZE.y),
             WallLocation::Bottom => Vec2::new(ARENA_SIZE.x / 2., 0.),
-        }
-    }
-
-    fn anchor(&self) -> Anchor {
-        match self {
-            WallLocation::Left => Anchor::CenterRight,
-            WallLocation::Right => Anchor::CenterLeft,
-            WallLocation::Top => Anchor::BottomCenter,
-            WallLocation::Bottom => Anchor::TopCenter,
         }
     }
 

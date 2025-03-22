@@ -55,7 +55,7 @@ fn startup(
     // starting position for enemies
     let enemy_start = Vec2::new(
         ENEMY_SIZE.x / 2.0 + ENEMY_WALL_GAP,
-        -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y - 40.,
+        -ENEMY_SIZE.y / 2.0 + ARENA_SIZE.y - 55.,
     );
     for y in 0..5 {
         let mut current_enemy_pos = enemy_start;

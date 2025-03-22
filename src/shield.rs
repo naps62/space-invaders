@@ -22,7 +22,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
                 color: Color::srgb(0., 1., 0.),
                 ..default()
             },
-            Transform::from_xyz(ARENA_SIZE.x / 2. + x, 50., 0.),
+            Transform::from_xyz(ARENA_SIZE.x / 2. + x, 70., 0.),
             Collider::shield_layer(),
         ));
     }
