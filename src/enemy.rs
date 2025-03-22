@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::{
     constants::*,
+    score::Points,
     shots::{self, Hit},
 };
 use bevy::{prelude::*, time::common_conditions::on_timer};
@@ -65,6 +66,11 @@ fn startup(
             1 | 2 => (&enemy_atlas_b, &texture_atlas_layout_b, Vec2::new(22., 16.)),
             _ => (&enemy_atlas_c, &texture_atlas_layout_c, Vec2::new(24., 16.)),
         };
+        let points = match y {
+            0 => 30,
+            1 | 2 => 20,
+            _ => 10,
+        };
         for x in 0..11 {
             let mut sprite = Sprite::from_atlas_image(
                 atlas.0.clone(),
@@ -80,6 +86,7 @@ fn startup(
                 sprite,
                 Transform::from_translation(current_enemy_pos.extend(0.0)),
                 shots::Collider::enemy_layer(),
+                Points(points),
             ));
 
             if y == 4 {
@@ -209,6 +216,7 @@ fn on_hit(
     let entity = trigger.entity();
 
     cmds.entity(entity).despawn();
+
     // if the hit enemy was a shooter, find the next shooter above and promote it
     if let Ok(coords) = shooters.get(entity) {
         if let Some(promotee) = non_shooters

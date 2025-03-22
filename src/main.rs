@@ -2,6 +2,7 @@ mod camera;
 mod constants;
 mod enemy;
 mod player;
+mod score;
 mod shield;
 mod shots;
 mod ui;
@@ -32,5 +33,6 @@ fn main() {
         .add_plugins(shots::ShotPlugin)
         .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
+        .add_plugins(score::ScorePlugin)
         .run();
 }

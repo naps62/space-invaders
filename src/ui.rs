@@ -1,14 +1,26 @@
-use crate::constants::*;
+use crate::{constants::*, score::Score};
 use bevy::{prelude::*, text::FontSmoothing, window::WindowResized};
 
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, update_scale);
+        app.add_systems(Startup, setup).add_systems(
+            Update,
+            (
+                update_scale,
+                update_score.run_if(resource_changed::<Score>),
+                update_lives,
+            ),
+        );
     }
 }
+
+#[derive(Component)]
+struct ScoreIndicator;
+
+#[derive(Component)]
+struct LivesIndicator;
 
 fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
     use AlignItems::*;
@@ -63,7 +75,7 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                             })
                             .with_children(|parent| {
                                 parent.spawn((Text::new("Score <1>"), font.clone(), color));
-                                parent.spawn((Text::new(" 0100"), font.clone(), color));
+                                parent.spawn((ScoreIndicator, Text::new(""), font.clone(), color));
                             });
 
                         parent
@@ -117,7 +129,7 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn((Text::new("3"), font.clone(), color));
+                        parent.spawn((LivesIndicator, (Text::new("3"), font.clone(), color)));
                         parent.spawn((Text::new("Credit 00"), font.clone(), color));
                     });
             });
@@ -138,3 +150,21 @@ fn update_scale(
         ui_scale.0 = scale.x.min(scale.y);
     }
 }
+
+fn update_score(score: Res<Score>, indicator: Single<&mut Text, With<ScoreIndicator>>) {
+    let mut indicator = indicator.into_inner();
+    *indicator = Text::new(format!(" {}", score.0));
+    //indicator.single_mut().sections[0].value = format!("{}", score.0);
+
+    //for s in score {
+    //    dbg!(s);
+    //}
+    //match score {
+    //    Ok(score) => {}
+    //}
+    //if let Some(score) = score {
+    //    dbg!(score.0);
+    //}
+}
+
+fn update_lives() {}
