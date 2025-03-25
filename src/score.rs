@@ -23,6 +23,5 @@ fn on_points_removal(
     let entity = trigger.entity();
     if let Ok(points) = points.get(entity) {
         score.0 += points.0;
-        dbg!(score.0);
     }
 }

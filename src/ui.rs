@@ -153,17 +153,6 @@ fn update_scale(
 fn update_score(score: Res<Score>, indicator: Single<&mut Text, With<ScoreIndicator>>) {
     let mut indicator = indicator.into_inner();
     *indicator = Text::new(format!(" {}", score.0));
-    //indicator.single_mut().sections[0].value = format!("{}", score.0);
-
-    //for s in score {
-    //    dbg!(s);
-    //}
-    //match score {
-    //    Ok(score) => {}
-    //}
-    //if let Some(score) = score {
-    //    dbg!(score.0);
-    //}
 }
 
 fn update_lives() {}
