@@ -23,14 +23,14 @@ impl Plugin for ShotPlugin {
 }
 
 bitflags::bitflags! {
-    #[derive(PartialEq, Eq, Clone, Copy)]
+    #[derive(PartialEq, Eq, Clone, Copy, Debug)]
     struct Layer: u32 {
-        const PLAYER_SHOT = 0b00001;
-        const ENEMY_SHOT  = 0b00010;
-        const WALL        = 0b00100;
-        const ENEMY       = 0b01000;
-        const PLAYER      = 0b01000;
-        const SHIELD      = 0b10000;
+        const PLAYER_SHOT = 0b000001;
+        const ENEMY_SHOT  = 0b000010;
+        const WALL        = 0b000100;
+        const ENEMY       = 0b001000;
+        const PLAYER      = 0b010000;
+        const SHIELD      = 0b100000;
     }
 }
 
@@ -42,11 +42,14 @@ struct PlayerShot;
 #[component(storage = "SparseSet")]
 struct EnemyShot;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Collider {
     layer: Layer,
     mask: Layer,
 }
+
+#[derive(Component, Debug)]
+pub struct Projectile;
 
 impl Collider {
     pub fn player_layer() -> Self {
@@ -122,6 +125,7 @@ pub fn spawn_player_shots(mut cmds: Commands, assets: Res<AssetServer>, position
             layer: Layer::PLAYER_SHOT,
             mask: Layer::ENEMY | Layer::WALL | Layer::SHIELD,
         },
+        Projectile,
     ))
     .observe(on_hit_destroy);
 }
@@ -140,6 +144,7 @@ pub fn spawn_enemy_shots(mut cmds: Commands, sprite: Res<SpriteWithAtlas>, posit
             layer: Layer::ENEMY_SHOT,
             mask: Layer::PLAYER | Layer::WALL | Layer::SHIELD,
         },
+        Projectile,
     ))
     .observe(on_hit_destroy);
 }
@@ -163,38 +168,56 @@ fn move_enemy_shots(mut shots: Query<(&mut Transform, &mut Sprite), With<EnemySh
 pub struct Hit;
 
 fn check_collisions(
-    mut cmds: Commands,
+    par_cmds: ParallelCommands,
+    projectiles: Query<(Entity, &Transform, &Sprite, &Collider), With<Projectile>>,
     colliders: Query<(Entity, &Transform, &Sprite, &Collider)>,
     images: Res<Assets<Image>>,
 ) {
-    for [a, b] in colliders.iter_combinations() {
-        let (entity_a, transform_a, sprite_a, collider_a) = a;
-        let (entity_b, transform_b, sprite_b, collider_b) = b;
+    projectiles.par_iter().for_each(
+        |(projectile_entity, projectile_transform, proj_sprite, proj_collider)| {
+            for (coll_entity, coll_transform, coll_sprite, coll_collider) in colliders.iter() {
+                if projectile_entity == coll_entity {
+                    // it's the same entity
+                    continue;
+                }
 
-        if entity_a == entity_b {
-            continue;
-        }
+                if !Collider::should_collide(proj_collider, coll_collider) {
+                    // these two colliders don't collide (e.g. enemy with walls)
+                    continue;
+                }
 
-        if !Collider::should_collide(collider_a, collider_b) {
-            continue;
-        }
-        let box_a = Aabb2d::new(
-            transform_a.translation.truncate(),
-            size(sprite_a, transform_a, &images) / Vec2::new(2.0, 3.0),
-        );
+                if (projectile_transform.translation.y - coll_transform.translation.y).abs() > 10. {
+                    // too far away from each other on the Y axis
+                    continue;
+                }
 
-        let box_b = Aabb2d::new(
-            transform_b.translation.truncate(),
-            size(sprite_b, transform_b, &images) / Vec2::new(2.0, 3.0),
-        );
+                if (projectile_transform.translation.x - coll_transform.translation.x).abs() > 50. {
+                    // too far away from each other on the X axis
+                    continue;
+                }
 
-        if !box_a.intersects(&box_b) {
-            continue;
-        }
+                let box_a = Aabb2d::new(
+                    projectile_transform.translation.truncate(),
+                    size(proj_sprite, projectile_transform, &images) / Vec2::new(2.0, 3.0),
+                );
 
-        cmds.trigger_targets(Hit, entity_a);
-        cmds.trigger_targets(Hit, entity_b);
-    }
+                let box_b = Aabb2d::new(
+                    coll_transform.translation.truncate(),
+                    size(coll_sprite, coll_transform, &images) / Vec2::new(2.0, 3.0),
+                );
+
+                if !box_a.intersects(&box_b) {
+                    // they don't intersect
+                    continue;
+                }
+
+                par_cmds.command_scope(|mut cmds| {
+                    cmds.trigger_targets(Hit, projectile_entity);
+                    cmds.trigger_targets(Hit, coll_entity);
+                })
+            }
+        },
+    );
 }
 
 fn size(sprite: &Sprite, transform: &Transform, images: &Res<Assets<Image>>) -> Vec2 {

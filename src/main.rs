@@ -15,6 +15,7 @@ fn main() {
     App::new()
         .add_plugins(
             DefaultPlugins
+                .build()
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Space Invaders".into(),

@@ -23,7 +23,6 @@ struct ScoreIndicator;
 struct LivesIndicator;
 
 fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
-    use AlignItems::*;
     use FlexDirection::*;
     use JustifyContent::*;
     use Val::*;
