@@ -75,7 +75,9 @@ impl Drop for AssetBarrierGuard {
 
 fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
     let (barrier, guard) = AssetBarrier::new();
-    cmds.insert_resource(Asset(assets.load_acquire("shield.png", guard.clone())));
+    cmds.insert_resource(Asset(
+        assets.load_acquire("sprites/shield.png", guard.clone()),
+    ));
     cmds.insert_resource(barrier);
 }
 

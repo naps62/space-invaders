@@ -13,14 +13,14 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyDirection::default())
+            .insert_resource(MoveTimer {
+                timer: Timer::from_seconds(1., TimerMode::Repeating),
+            })
             .insert_resource(ShootTimer::default())
             .add_systems(Startup, startup)
             .add_systems(
                 Update,
-                (
-                    move_enemies.run_if(on_timer(Duration::from_secs_f32(1.))),
-                    update_temporaries,
-                ),
+                (update_move_timer, move_enemies, update_temporaries),
             )
             .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
     }
@@ -40,23 +40,28 @@ struct Temporary {
     timer: Timer,
 }
 
+#[derive(Resource)]
+struct MoveTimer {
+    timer: Timer,
+}
+
 fn startup(
     mut cmds: Commands,
     assets: Res<AssetServer>,
     mut texture_atlas_layout: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     // enemies
-    let enemy_atlas_a = assets.load("a.png");
+    let enemy_atlas_a = assets.load("sprites/a.png");
     let layout_a =
         TextureAtlasLayout::from_grid(UVec2::splat(16), 2, 1, Some(UVec2::splat(1)), None);
     let texture_atlas_layout_a = texture_atlas_layout.add(layout_a);
 
-    let enemy_atlas_b = assets.load("b.png");
+    let enemy_atlas_b = assets.load("sprites/b.png");
     let layout_b =
         TextureAtlasLayout::from_grid(UVec2::new(22, 16), 2, 1, Some(UVec2::splat(1)), None);
     let texture_atlas_layout_b = texture_atlas_layout.add(layout_b);
 
-    let enemy_atlas_c = assets.load("c.png");
+    let enemy_atlas_c = assets.load("sprites/c.png");
     let layout_c =
         TextureAtlasLayout::from_grid(UVec2::new(24, 16), 2, 1, Some(UVec2::splat(1)), None);
     let texture_atlas_layout_c = texture_atlas_layout.add(layout_c);
@@ -108,6 +113,8 @@ fn startup(
             current_enemy_pos.x += 12. + ENEMY_SPACING;
         }
     }
+
+    let _ = assets.load::<AudioSource>("sounds/enemy-killed.ogg");
 }
 
 #[derive(Component, Default, Debug)]
@@ -143,17 +150,34 @@ impl EnemyDirection {
     }
 }
 
+fn update_move_timer(
+    mut timer: ResMut<MoveTimer>,
+    time: Res<Time>,
+    enemies: Query<Entity, With<Enemy>>,
+) {
+    let enemy_count = enemies.iter().count();
+    let speed_factor = 1.0 / (enemy_count as f32 / (11 * 5) as f32);
+    timer
+        .timer
+        .set_duration(Duration::from_secs_f32(speed_factor));
+    dbg!(speed_factor);
+    timer.timer.tick(time.delta());
+}
+
 fn move_enemies(
     direction: Res<EnemyDirection>,
     mut transforms: Query<&mut Transform, With<Enemy>>,
     mut sprites: Query<&mut Sprite, With<Enemy>>,
+    timer: Res<MoveTimer>,
 ) {
-    for mut enemy in transforms.iter_mut() {
-        enemy.translation.x += 1.0 * direction.as_f32();
-    }
-    for mut sprite in sprites.iter_mut() {
-        if let Some(atlas) = &mut sprite.texture_atlas {
-            atlas.index = 1 - atlas.index;
+    if timer.timer.finished() {
+        for mut enemy in transforms.iter_mut() {
+            enemy.translation.x += 1.0 * direction.as_f32();
+        }
+        for mut sprite in sprites.iter_mut() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                atlas.index = 1 - atlas.index;
+            }
         }
     }
 }
@@ -229,7 +253,7 @@ fn on_hit(
     // spawn explosion
     cmds.spawn((
         Sprite {
-            image: assets.load("enemy-explosion.png"),
+            image: assets.load("sprites/enemy-explosion.png"),
             custom_size: Some(Vec2::new(12., 8.)),
             ..default()
         },
@@ -238,6 +262,9 @@ fn on_hit(
             timer: Timer::from_seconds(0.5, TimerMode::Once),
         },
     ));
+
+    // play sound
+    cmds.spawn(AudioPlayer::new(assets.load("sounds/enemy-killed.ogg")));
 
     // despawn enemy
     cmds.entity(entity).despawn();

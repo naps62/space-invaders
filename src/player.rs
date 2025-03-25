@@ -8,13 +8,14 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, startup)
+        app.insert_resource(Lives(3))
+            .add_systems(Startup, startup)
             .add_systems(FixedUpdate, (move_player, player_shoot));
     }
 }
 
 fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
-    let player_sprite = assets.load("player.png");
+    let player_sprite = assets.load("sprites/player.png");
     cmds.spawn((
         Player,
         Sprite {
@@ -29,9 +30,12 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
     .observe(on_hit);
 }
 
-fn on_hit(_trigger: Trigger<Hit>, mut _cmds: Commands) {
-    dbg!("player hit");
+fn on_hit(_trigger: Trigger<Hit>, mut lives: ResMut<Lives>, mut _cmds: Commands) {
+    lives.0 -= 1;
 }
+
+#[derive(Resource, Default)]
+pub struct Lives(pub usize);
 
 #[derive(Component)]
 pub struct Player;

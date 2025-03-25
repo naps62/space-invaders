@@ -93,7 +93,7 @@ fn startup(
     assets: Res<AssetServer>,
     mut atlas: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let a1 = assets.load("shots/enemy_a.png");
+    let a1 = assets.load("sprites/shots/enemy_a.png");
     let a1_atlas = atlas.add(TextureAtlasLayout::from_grid(
         UVec2::new(3, 7),
         4,
@@ -111,12 +111,17 @@ fn startup(
     sprite.custom_size = Some(Vec2::new(1., 4.));
 
     cmds.insert_resource(SpriteWithAtlas(sprite));
+
+    // load assets
+    let _ = assets.load::<Image>("sprites/shots/player.png");
+    let _ = assets.load::<AudioSource>("sounds/player-shot.ogg");
 }
 
 pub fn spawn_player_shots(mut cmds: Commands, assets: Res<AssetServer>, position: Vec2) {
-    let projectile = assets.load("shots/player.png");
+    let projectile = assets.load("sprites/shots/player.png");
     let mut sprite = Sprite::from_image(projectile);
     sprite.custom_size = Some(Vec2::new(1., 4.));
+    cmds.spawn(AudioPlayer::new(assets.load("sounds/player-shot.ogg")));
     cmds.spawn((
         sprite,
         Transform::from_xyz(position.x, position.y, 0.0),

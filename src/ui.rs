@@ -22,6 +22,9 @@ struct ScoreIndicator;
 #[derive(Component)]
 struct LivesIndicator;
 
+#[derive(Component)]
+struct LivesImagesIndicator;
+
 fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
     use FlexDirection::*;
     use JustifyContent::*;
@@ -110,15 +113,6 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             })
             .with_children(|parent| {
-                //parent.spawn((
-                //    Node {
-                //        height: Px(1.),
-                //        width: Percent(100.),
-                //        margin: UiRect::new(Px(0.), Px(0.), Px(0.), Px(1.)),
-                //        ..default()
-                //    },
-                //    BackgroundColor(GREEN),
-                //));
                 // bottom text
                 parent
                     .spawn(Node {
@@ -128,7 +122,22 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     })
                     .with_children(|parent| {
-                        parent.spawn((LivesIndicator, (Text::new("3"), font.clone(), color)));
+                        parent
+                            .spawn(Node {
+                                height: Percent(100.),
+                                ..default()
+                            })
+                            .with_children(|parent| {
+                                parent
+                                    .spawn((LivesIndicator, (Text::new("3"), font.clone(), color)));
+                                parent.spawn((
+                                    Node {
+                                        height: Percent(100.),
+                                        ..default()
+                                    },
+                                    LivesImagesIndicator,
+                                ));
+                            });
                         parent.spawn((Text::new("Credit 00"), font.clone(), color));
                     });
             });
