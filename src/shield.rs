@@ -91,39 +91,53 @@ fn spawn_sprites(
 ) {
     next_loading_state.set(LoadingState::Loaded);
 
-    let image = sprite.0.clone();
-    if let Some(image) = images.get(&image) {
-        let width = image.size().x as usize;
-        let height = image.size().y as usize;
+    let image = images.get(&sprite.0).unwrap();
+    let width = image.size().x as usize;
+    let height = image.size().y as usize;
 
-        let y_offset = 77.0;
+    let y_offset = 77.0;
 
-        for shield in [33., 79., 124., 168.].iter() {
-            for y in 0..height {
-                for x in 0..width {
-                    let pixel_index = (y * width + x) * 4; // RGBA format
-                    let alpha = image.data[pixel_index + 3]; // Check transparency
+    // spawn each shield
+    for shield in [33., 79., 124., 168.].iter() {
+        for y in 0..height {
+            for x in 0..width {
+                let pixel_index = (y * width + x) * 4; // RGBA format
+                let alpha = image.data[pixel_index + 3]; // Check transparency
 
-                    if alpha > 128 {
-                        // Only spawn blocks if pixel is visible
-                        let block_x = shield + x as f32;
-                        let block_y = y_offset - y as f32;
+                if alpha > 128 {
+                    // Only spawn blocks if pixel is visible
+                    let block_x = shield + x as f32;
+                    let block_y = y_offset - y as f32;
 
-                        cmds.spawn((
-                            ShieldBlock,
-                            Sprite {
-                                color: GREEN,
-                                custom_size: Some(Vec2::splat(2.)),
-                                ..default()
-                            },
-                            Transform::from_xyz(block_x, block_y, 0.0),
-                            Collider::shield_layer(),
-                        ))
-                        .observe(on_hit);
-                    }
+                    cmds.spawn((
+                        ShieldBlock,
+                        Sprite {
+                            color: GREEN,
+                            custom_size: Some(Vec2::splat(1.)),
+                            ..default()
+                        },
+                        Transform::from_xyz(block_x, block_y, 0.0),
+                        Collider::shield_layer(),
+                    ))
+                    .observe(on_hit);
                 }
             }
         }
+    }
+
+    // spawn bottom line!()
+    for x in 0..(ARENA_SIZE.x as u32) {
+        cmds.spawn((
+            ShieldBlock,
+            Sprite {
+                color: GREEN,
+                custom_size: Some(Vec2::splat(1.)),
+                ..default()
+            },
+            Transform::from_xyz(x as f32, 20., 0.0),
+            Collider::shield_layer(),
+        ))
+        .observe(on_hit);
     }
 }
 

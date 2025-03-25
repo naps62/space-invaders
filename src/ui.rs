@@ -110,15 +110,15 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             })
             .with_children(|parent| {
-                parent.spawn((
-                    Node {
-                        height: Px(1.),
-                        width: Percent(100.),
-                        margin: UiRect::new(Px(0.), Px(0.), Px(0.), Px(1.)),
-                        ..default()
-                    },
-                    BackgroundColor(GREEN),
-                ));
+                //parent.spawn((
+                //    Node {
+                //        height: Px(1.),
+                //        width: Percent(100.),
+                //        margin: UiRect::new(Px(0.), Px(0.), Px(0.), Px(1.)),
+                //        ..default()
+                //    },
+                //    BackgroundColor(GREEN),
+                //));
                 // bottom text
                 parent
                     .spawn(Node {
