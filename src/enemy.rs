@@ -17,7 +17,10 @@ impl Plugin for EnemyPlugin {
             .add_systems(Startup, startup)
             .add_systems(
                 Update,
-                move_enemies.run_if(on_timer(Duration::from_secs_f32(1.))),
+                (
+                    move_enemies.run_if(on_timer(Duration::from_secs_f32(1.))),
+                    update_temporaries,
+                ),
             )
             .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
     }
@@ -31,6 +34,11 @@ struct Shooter;
 
 #[derive(Component)]
 struct NonShooter;
+
+#[derive(Component)]
+struct Temporary {
+    timer: Timer,
+}
 
 fn startup(
     mut cmds: Commands,
@@ -210,11 +218,28 @@ fn shoot(
 fn on_hit(
     trigger: Trigger<Hit>,
     mut cmds: Commands,
+    assets: Res<AssetServer>,
+    all_enemies: Query<&Transform, With<Enemy>>,
     shooters: Query<&Enemy, With<Shooter>>,
     non_shooters: Query<(Entity, &Enemy), Without<Shooter>>,
 ) {
     let entity = trigger.entity();
+    let enemy = all_enemies.get(entity).unwrap();
 
+    // spawn explosion
+    cmds.spawn((
+        Sprite {
+            image: assets.load("enemy-explosion.png"),
+            custom_size: Some(Vec2::new(12., 8.)),
+            ..default()
+        },
+        Transform::from_xyz(enemy.translation.x, enemy.translation.y, 0.0),
+        Temporary {
+            timer: Timer::from_seconds(0.5, TimerMode::Once),
+        },
+    ));
+
+    // despawn enemy
     cmds.entity(entity).despawn();
 
     // if the hit enemy was a shooter, find the next shooter above and promote it
@@ -225,6 +250,20 @@ fn on_hit(
             .max_by_key(|(_, e)| e.y)
         {
             cmds.entity(promotee.0).insert(Shooter);
+        }
+    }
+}
+
+fn update_temporaries(
+    mut cmds: Commands,
+    mut enemies: Query<(Entity, &mut Temporary)>,
+    time: Res<Time>,
+) {
+    for (entity, mut temporary) in enemies.iter_mut() {
+        temporary.timer.tick(time.delta());
+
+        if temporary.timer.finished() {
+            cmds.entity(entity).despawn();
         }
     }
 }
