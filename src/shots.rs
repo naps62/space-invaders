@@ -36,7 +36,7 @@ bitflags::bitflags! {
 
 #[derive(Component, Default)]
 #[component(storage = "SparseSet")]
-struct PlayerShot;
+pub struct PlayerShot;
 
 #[derive(Component, Default)]
 #[component(storage = "SparseSet")]

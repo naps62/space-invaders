@@ -1,6 +1,6 @@
 use crate::{
     constants::*,
-    shots::{self, Hit},
+    shots::{self, Hit, PlayerShot},
 };
 use bevy::prelude::*;
 
@@ -9,7 +9,6 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, startup)
-            .insert_resource(PlayerShootTimer::default())
             .add_systems(FixedUpdate, (move_player, player_shoot));
     }
 }
@@ -56,27 +55,14 @@ fn move_player(
     player.translation.x = new_position.clamp(left_bound, right_bound);
 }
 
-#[derive(Resource)]
-pub struct PlayerShootTimer(Timer);
-
-impl Default for PlayerShootTimer {
-    fn default() -> Self {
-        Self(Timer::from_seconds(0.5, TimerMode::Once))
-    }
-}
-
 fn player_shoot(
-    time: Res<Time>,
+    has_shot: Query<(), With<PlayerShot>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     player: Single<&mut Transform, With<Player>>,
     assets: Res<AssetServer>,
-    mut timer: ResMut<PlayerShootTimer>,
     cmds: Commands,
 ) {
-    timer.0.tick(time.delta());
-
-    if timer.0.finished() && keyboard.just_pressed(KeyCode::Space) {
-        timer.0.reset();
+    if has_shot.is_empty() && keyboard.just_pressed(KeyCode::Space) {
         shots::spawn_player_shots(
             cmds,
             assets,
