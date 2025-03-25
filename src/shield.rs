@@ -3,7 +3,10 @@ use std::sync::{
     Arc,
 };
 
-use crate::{constants::*, shots::Collider};
+use crate::{
+    constants::*,
+    shots::{Collider, Hit},
+};
 use bevy::prelude::*;
 
 pub struct ShieldPlugin;
@@ -115,7 +118,8 @@ fn spawn_sprites(
                             },
                             Transform::from_xyz(block_x, block_y, 0.0),
                             Collider::shield_layer(),
-                        ));
+                        ))
+                        .observe(on_hit);
                     }
                 }
             }
@@ -125,3 +129,8 @@ fn spawn_sprites(
 
 #[derive(Component)]
 struct ShieldBlock;
+
+fn on_hit(trigger: Trigger<Hit>, mut cmds: Commands) {
+    let entity = trigger.entity();
+    cmds.entity(entity).despawn();
+}
