@@ -2,6 +2,7 @@ mod camera;
 mod constants;
 mod enemy;
 mod hud;
+mod menu;
 mod player;
 mod score;
 mod shield;
@@ -13,8 +14,8 @@ use constants::*;
 
 #[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum GameState {
-    MainMenu,
     #[default]
+    MainMenu,
     Playing,
     GameOver,
 }
@@ -44,5 +45,6 @@ fn main() {
         .add_plugins(hud::HudPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(score::ScorePlugin)
+        .add_plugins(menu::MenuPlugin)
         .run();
 }
