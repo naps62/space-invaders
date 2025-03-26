@@ -120,7 +120,7 @@ fn startup(
 pub fn spawn_player_shots(mut cmds: Commands, assets: Res<AssetServer>, position: Vec2) {
     let projectile = assets.load("sprites/shots/player.png");
     let mut sprite = Sprite::from_image(projectile);
-    sprite.custom_size = Some(Vec2::new(1., 4.));
+    sprite.custom_size = Some(Vec2::new(0.5, 4.));
     cmds.spawn(AudioPlayer::new(assets.load("sounds/player-shot.ogg")));
     cmds.spawn((
         sprite,
@@ -175,7 +175,7 @@ pub struct Hit;
 fn check_collisions(
     par_cmds: ParallelCommands,
     projectiles: Query<(Entity, &Transform, &Sprite, &Collider), With<Projectile>>,
-    colliders: Query<(Entity, &Transform, &Sprite, &Collider)>,
+    colliders: Query<(Entity, &Transform, Option<&Sprite>, &Collider)>,
     images: Res<Assets<Image>>,
 ) {
     projectiles.par_iter().for_each(
@@ -192,12 +192,8 @@ fn check_collisions(
                 }
 
                 if (projectile_transform.translation.y - coll_transform.translation.y).abs() > 10. {
-                    // too far away from each other on the Y axis
-                    continue;
-                }
-
-                if (projectile_transform.translation.x - coll_transform.translation.x).abs() > 50. {
-                    // too far away from each other on the X axis
+                    // all colliders move vertically, so we can rule out collisions if they're too
+                    // far away on the Y axis
                     continue;
                 }
 
@@ -208,7 +204,9 @@ fn check_collisions(
 
                 let box_b = Aabb2d::new(
                     coll_transform.translation.truncate(),
-                    size(coll_sprite, coll_transform, &images) / Vec2::new(2.0, 3.0),
+                    coll_sprite
+                        .map(|s| size(s, coll_transform, &images) / Vec2::new(2.0, 3.0))
+                        .unwrap_or_else(|| coll_transform.scale.truncate()),
                 );
 
                 if !box_a.intersects(&box_b) {

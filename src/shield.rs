@@ -133,7 +133,7 @@ fn spawn_sprites(
             ShieldBlock,
             Sprite {
                 color: GREEN,
-                custom_size: Some(Vec2::splat(1.)),
+                custom_size: Some(Vec2::new(1., 0.5)),
                 ..default()
             },
             Transform::from_xyz(x as f32, 20., 0.0),

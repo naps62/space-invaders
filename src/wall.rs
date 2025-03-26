@@ -10,29 +10,25 @@ impl Plugin for WallPlugin {
 }
 
 fn startup(mut cmds: Commands) {
-    cmds.spawn(Wall::new(WallLocation::Left));
-    cmds.spawn(Wall::new(WallLocation::Right));
-    cmds.spawn(Wall::new(WallLocation::Top));
-    cmds.spawn(Wall::new(WallLocation::Bottom));
+    cmds.spawn(new(WallLocation::Left));
+    cmds.spawn(new(WallLocation::Right));
+    cmds.spawn(new(WallLocation::Top));
+    cmds.spawn(new(WallLocation::Bottom));
 }
 
-#[derive(Bundle)]
-struct Wall {
-    transform: Transform,
-    collider: Collider,
-}
+#[derive(Component)]
+struct Wall;
 
-impl Wall {
-    fn new(location: WallLocation) -> Self {
-        Self {
-            transform: Transform {
-                translation: location.position().extend(1.0),
-                scale: location.size().extend(1.0),
-                ..default()
-            },
-            collider: Collider::wall_layer(),
-        }
-    }
+fn new(location: WallLocation) -> (Transform, Collider, Wall) {
+    (
+        Transform {
+            translation: location.position().extend(1.0),
+            scale: location.size().extend(1.0),
+            ..default()
+        },
+        Collider::wall_layer(),
+        Wall,
+    )
 }
 
 enum WallLocation {

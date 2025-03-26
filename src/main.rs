@@ -1,4 +1,3 @@
-mod audio;
 mod camera;
 mod constants;
 mod enemy;
@@ -36,6 +35,5 @@ fn main() {
         .add_plugins(ui::UiPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(score::ScorePlugin)
-        .add_plugins(audio::AudioPlugin)
         .run();
 }

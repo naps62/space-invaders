@@ -5,10 +5,15 @@ use crate::{
     score::Points,
     shots::{self, Hit},
 };
-use bevy::{prelude::*, time::common_conditions::on_timer};
+use bevy::prelude::*;
 use rand::Rng as _;
 
 pub struct EnemyPlugin;
+
+const INITIAL_MOVE_DELAY: f32 = 0.6;
+const FINAL_MOVE_DELAY: f32 = 0.05;
+const MOVE_X: f32 = 4.0;
+const MOVE_Y: f32 = 8.0;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
@@ -156,11 +161,10 @@ fn update_move_timer(
     enemies: Query<Entity, With<Enemy>>,
 ) {
     let enemy_count = enemies.iter().count();
-    let speed_factor = 1.0 / (enemy_count as f32 / (11 * 5) as f32);
-    timer
-        .timer
-        .set_duration(Duration::from_secs_f32(speed_factor));
-    dbg!(speed_factor);
+    let percent = 1. - enemy_count as f32 / (11 * 5) as f32;
+    let delay = INITIAL_MOVE_DELAY + (FINAL_MOVE_DELAY - INITIAL_MOVE_DELAY) * percent;
+    dbg!(delay);
+    timer.timer.set_duration(Duration::from_secs_f32(delay));
     timer.timer.tick(time.delta());
 }
 
@@ -172,7 +176,7 @@ fn move_enemies(
 ) {
     if timer.timer.finished() {
         for mut enemy in transforms.iter_mut() {
-            enemy.translation.x += 1.0 * direction.as_f32();
+            enemy.translation.x += MOVE_X * direction.as_f32();
         }
         for mut sprite in sprites.iter_mut() {
             if let Some(atlas) = &mut sprite.texture_atlas {
@@ -203,7 +207,7 @@ fn swap_enemy_direction(
     if needs_reverse {
         direction.reverse();
         for mut enemy in enemies.iter_mut() {
-            enemy.translation.y -= 5.0;
+            enemy.translation.y -= MOVE_Y;
         }
     }
 }
