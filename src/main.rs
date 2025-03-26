@@ -1,15 +1,23 @@
 mod camera;
 mod constants;
 mod enemy;
+mod hud;
 mod player;
 mod score;
 mod shield;
 mod shots;
-mod ui;
 mod wall;
 
 use bevy::prelude::*;
 use constants::*;
+
+#[derive(States, Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum GameState {
+    MainMenu,
+    #[default]
+    Playing,
+    GameOver,
+}
 
 fn main() {
     App::new()
@@ -25,6 +33,7 @@ fn main() {
                 })
                 .set(ImagePlugin::default_nearest()),
         )
+        .init_state::<GameState>()
         .insert_resource(ClearColor(BG_COLOR))
         .insert_resource(Time::<Fixed>::from_hz(60.0))
         .add_plugins(wall::WallPlugin)
@@ -32,7 +41,7 @@ fn main() {
         .add_plugins(enemy::EnemyPlugin)
         .add_plugins(shield::ShieldPlugin)
         .add_plugins(shots::ShotPlugin)
-        .add_plugins(ui::UiPlugin)
+        .add_plugins(hud::HudPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(score::ScorePlugin)
         .run();

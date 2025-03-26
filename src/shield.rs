@@ -6,6 +6,7 @@ use std::sync::{
 use crate::{
     constants::*,
     shots::{Collider, Hit},
+    GameState,
 };
 use bevy::prelude::*;
 
@@ -14,12 +15,15 @@ pub struct ShieldPlugin;
 impl Plugin for ShieldPlugin {
     fn build(&self, app: &mut App) {
         app.init_state::<LoadingState>()
-            .add_systems(Startup, startup)
+            .add_systems(OnEnter(GameState::Playing), startup)
             .add_systems(
                 Update,
                 // shields need the sprite to be loaded to spawn, hence this roundabout logic.
                 // mostly adapted from https://bevyengine.org/examples/assets/multi-asset-sync/
-                spawn_sprites.run_if(is_sprite_loaded.and(in_state(LoadingState::Loading))),
+                spawn_sprites.run_if(
+                    in_state(GameState::Playing)
+                        .and(is_sprite_loaded.and(in_state(LoadingState::Loading))),
+                ),
             );
     }
 }

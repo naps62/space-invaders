@@ -4,6 +4,7 @@ use crate::{
     constants::*,
     score::Points,
     shots::{self, Hit},
+    GameState,
 };
 use bevy::prelude::*;
 use rand::Rng as _;
@@ -22,12 +23,16 @@ impl Plugin for EnemyPlugin {
                 timer: Timer::from_seconds(1., TimerMode::Repeating),
             })
             .insert_resource(ShootTimer::default())
-            .add_systems(Startup, startup)
+            .add_systems(OnEnter(GameState::Playing), startup)
             .add_systems(
                 Update,
-                (update_move_timer, move_enemies, update_temporaries),
+                (update_move_timer, move_enemies, update_temporaries)
+                    .run_if(in_state(GameState::Playing)),
             )
-            .add_systems(FixedUpdate, (swap_enemy_direction, shoot));
+            .add_systems(
+                FixedUpdate,
+                (swap_enemy_direction, shoot).run_if(in_state(GameState::Playing)),
+            );
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::{
     constants::*,
     shots::{self, Hit, PlayerShot},
+    GameState,
 };
 use bevy::prelude::*;
 
@@ -9,8 +10,11 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Lives(3))
-            .add_systems(Startup, startup)
-            .add_systems(FixedUpdate, (move_player, player_shoot));
+            .add_systems(OnEnter(GameState::Playing), startup)
+            .add_systems(
+                FixedUpdate,
+                (move_player, player_shoot).run_if(in_state(GameState::Playing)),
+            );
     }
 }
 

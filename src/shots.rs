@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::constants::*;
+use crate::{constants::*, GameState};
 use bevy::{
     math::bounding::{Aabb2d, IntersectsVolume as _},
     prelude::*,
@@ -12,15 +12,17 @@ pub struct ShotPlugin;
 
 impl Plugin for ShotPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, startup).add_systems(
-            FixedUpdate,
-            (
-                move_player_shots,
-                move_enemy_shots.run_if(on_timer(Duration::from_secs_f32(1. / 60.))),
-                animate_enemy_shots.run_if(on_timer(Duration::from_secs_f32(2. / 60.))),
-                check_collisions,
-            ),
-        );
+        app.add_systems(OnEnter(GameState::Playing), startup)
+            .add_systems(
+                FixedUpdate,
+                (
+                    move_player_shots,
+                    move_enemy_shots.run_if(on_timer(Duration::from_secs_f32(1. / 60.))),
+                    animate_enemy_shots.run_if(on_timer(Duration::from_secs_f32(2. / 60.))),
+                    check_collisions,
+                )
+                    .run_if(in_state(GameState::Playing)),
+            );
     }
 }
 

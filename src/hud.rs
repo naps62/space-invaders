@@ -1,18 +1,20 @@
-use crate::{constants::*, score::Score};
+use crate::{constants::*, score::Score, GameState};
 use bevy::{prelude::*, text::FontSmoothing, window::WindowResized};
 
-pub struct UiPlugin;
+pub struct HudPlugin;
 
-impl Plugin for UiPlugin {
+impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup).add_systems(
-            Update,
-            (
-                update_scale,
-                update_score.run_if(resource_changed::<Score>),
-                update_lives,
-            ),
-        );
+        app.add_systems(OnEnter(GameState::Playing), setup)
+            .add_systems(
+                Update,
+                (
+                    update_scale,
+                    update_score.run_if(resource_changed::<Score>),
+                    update_lives,
+                )
+                    .run_if(in_state(GameState::Playing)),
+            );
     }
 }
 

@@ -1,11 +1,11 @@
-use crate::{constants::*, shots::Collider};
+use crate::{constants::*, shots::Collider, GameState};
 use bevy::prelude::*;
 
 pub struct WallPlugin;
 
 impl Plugin for WallPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, startup);
+        app.add_systems(OnEnter(GameState::Playing), startup);
     }
 }
 
