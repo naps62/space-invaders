@@ -34,8 +34,16 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
     .observe(on_hit);
 }
 
-fn on_hit(_trigger: Trigger<Hit>, mut lives: ResMut<Lives>, mut _cmds: Commands) {
+fn on_hit(
+    _trigger: Trigger<Hit>,
+    mut lives: ResMut<Lives>,
+    mut _cmds: Commands,
+    mut next_game_state: ResMut<NextState<GameState>>,
+) {
     lives.0 -= 1;
+    if lives.0 == 0 {
+        next_game_state.set(GameState::GameOver);
+    }
 }
 
 #[derive(Resource, Default)]

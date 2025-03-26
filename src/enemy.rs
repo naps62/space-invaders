@@ -254,9 +254,15 @@ fn on_hit(
     all_enemies: Query<&Transform, With<Enemy>>,
     shooters: Query<&Enemy, With<Shooter>>,
     non_shooters: Query<(Entity, &Enemy), Without<Shooter>>,
+    mut next_game_state: ResMut<NextState<GameState>>,
 ) {
     let entity = trigger.entity();
     let enemy = all_enemies.get(entity).unwrap();
+
+    if all_enemies.iter().count() == 1 {
+        next_game_state.set(GameState::GameOver);
+        return;
+    }
 
     // spawn explosion
     cmds.spawn((

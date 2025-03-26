@@ -1,5 +1,5 @@
-use crate::{constants::*, score::Score, GameState};
-use bevy::{prelude::*, text::FontSmoothing, window::WindowResized};
+use crate::{constants::*, player::Lives, score::Score, GameState};
+use bevy::{prelude::*, text::FontSmoothing, ui::widget::ImageNodeSize, window::WindowResized};
 
 pub struct HudPlugin;
 
@@ -11,7 +11,7 @@ impl Plugin for HudPlugin {
                 (
                     update_scale,
                     update_score.run_if(resource_changed::<Score>),
-                    update_lives,
+                    update_lives.run_if(resource_changed::<Lives>),
                 )
                     .run_if(in_state(GameState::Playing)),
             );
@@ -132,13 +132,27 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                             .with_children(|parent| {
                                 parent
                                     .spawn((LivesIndicator, (Text::new("3"), font.clone(), color)));
-                                parent.spawn((
-                                    Node {
-                                        height: Percent(100.),
-                                        ..default()
-                                    },
-                                    LivesImagesIndicator,
-                                ));
+                                parent
+                                    .spawn((
+                                        Node {
+                                            height: Percent(100.),
+                                            ..default()
+                                        },
+                                        LivesImagesIndicator,
+                                    ))
+                                    .with_children(|parent| {
+                                        let mut image =
+                                            ImageNode::new(asset_server.load("sprites/player.png"));
+                                        image.color = Color::srgb(0., 1., 0.);
+                                        let node = Node {
+                                            width: Px(PLAYER_SIZE.x),
+                                            height: Px(PLAYER_SIZE.y),
+                                            margin: UiRect::new(Px(5.), Px(0.), Px(0.), Px(0.)),
+                                            ..default()
+                                        };
+                                        parent.spawn((node.clone(), image.clone()));
+                                        parent.spawn((node.clone(), image.clone()));
+                                    });
                             });
                         parent.spawn((Text::new("Credit 00"), font.clone(), color));
                     });
@@ -166,4 +180,17 @@ fn update_score(score: Res<Score>, indicator: Single<&mut Text, With<ScoreIndica
     *indicator = Text::new(format!(" {}", score.0));
 }
 
-fn update_lives() {}
+fn update_lives(
+    mut cmds: Commands,
+    lives: Res<Lives>,
+    indicator: Single<&mut Text, With<LivesIndicator>>,
+    images_indicator: Single<(Entity, &Children), With<LivesImagesIndicator>>,
+) {
+    let mut indicator = indicator.into_inner();
+    *indicator = Text::new(format!(" {}", lives.0));
+
+    let (parent, children) = images_indicator.into_inner();
+    if let Some(&last_child) = children.iter().last() {
+        cmds.entity(parent).remove_children(&[last_child]);
+    }
+}
