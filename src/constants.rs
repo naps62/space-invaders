@@ -14,5 +14,5 @@ pub const PLAYER_SPEED: f32 = 1.0;
 
 pub const ENEMY_SIZE: Vec2 = Vec2::splat(16.);
 pub const ENEMY_SPACING: f32 = 3.0;
-pub const ENEMY_WALL_GAP: f32 = 10.0;
-pub const ENEMY_PROJECTILE_SPEED: f32 = 3.0;
+pub const ENEMY_WALL_GAP: f32 = 5.0;
+pub const ENEMY_PROJECTILE_SPEED: f32 = 1.5;

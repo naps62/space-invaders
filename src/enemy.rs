@@ -11,7 +11,7 @@ use rand::Rng as _;
 pub struct EnemyPlugin;
 
 const INITIAL_MOVE_DELAY: f32 = 0.6;
-const FINAL_MOVE_DELAY: f32 = 0.05;
+const FINAL_MOVE_DELAY: f32 = 0.1;
 const MOVE_X: f32 = 4.0;
 const MOVE_Y: f32 = 8.0;
 
@@ -163,7 +163,6 @@ fn update_move_timer(
     let enemy_count = enemies.iter().count();
     let percent = 1. - enemy_count as f32 / (11 * 5) as f32;
     let delay = INITIAL_MOVE_DELAY + (FINAL_MOVE_DELAY - INITIAL_MOVE_DELAY) * percent;
-    dbg!(delay);
     timer.timer.set_duration(Duration::from_secs_f32(delay));
     timer.timer.tick(time.delta());
 }
@@ -220,7 +219,7 @@ impl Default for ShootTimer {
 
 fn shoot(
     cmds: Commands,
-    assets: Res<shots::SpriteWithAtlas>,
+    assets: Res<shots::EnemyShotSpritesWithAtlas>,
     time: Res<Time>,
     mut timer: ResMut<ShootTimer>,
     enemies: Query<&mut Transform, With<Shooter>>,

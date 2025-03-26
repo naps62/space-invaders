@@ -6,6 +6,7 @@ use bevy::{
     prelude::*,
     time::common_conditions::on_timer,
 };
+use rand::seq::IndexedRandom as _;
 
 pub struct ShotPlugin;
 
@@ -15,7 +16,8 @@ impl Plugin for ShotPlugin {
             FixedUpdate,
             (
                 move_player_shots,
-                move_enemy_shots.run_if(on_timer(Duration::from_secs_f32(3. / 60.))),
+                move_enemy_shots.run_if(on_timer(Duration::from_secs_f32(1. / 60.))),
+                animate_enemy_shots.run_if(on_timer(Duration::from_secs_f32(2. / 60.))),
                 check_collisions,
             ),
         );
@@ -86,31 +88,58 @@ impl Collider {
 }
 
 #[derive(Resource)]
-pub struct SpriteWithAtlas(Sprite);
+pub struct EnemyShotSpritesWithAtlas([Sprite; 3]);
 
 fn startup(
     mut cmds: Commands,
     assets: Res<AssetServer>,
     mut atlas: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let a1 = assets.load("sprites/shots/enemy_a.png");
-    let a1_atlas = atlas.add(TextureAtlasLayout::from_grid(
-        UVec2::new(3, 7),
-        4,
-        1,
-        Some(UVec2::splat(1)),
-        None,
-    ));
-    let mut sprite = Sprite::from_atlas_image(
-        a1,
-        TextureAtlas {
-            layout: a1_atlas,
-            index: 0,
-        },
-    );
-    sprite.custom_size = Some(Vec2::new(1., 4.));
+    fn load_sprite(
+        name: &str,
+        assets: &Res<AssetServer>,
+        atlas: &mut ResMut<Assets<TextureAtlasLayout>>,
+        size: UVec2,
+    ) -> Sprite {
+        let a = assets.load(name);
+        let a_atlas = atlas.add(TextureAtlasLayout::from_grid(
+            size,
+            4,
+            1,
+            Some(UVec2::splat(0)),
+            None,
+        ));
+        let mut sprite = Sprite::from_atlas_image(
+            a,
+            TextureAtlas {
+                layout: a_atlas,
+                index: 0,
+            },
+        );
+        sprite.custom_size = Some(Vec2::new(1., 4.));
+        sprite
+    }
 
-    cmds.insert_resource(SpriteWithAtlas(sprite));
+    cmds.insert_resource(EnemyShotSpritesWithAtlas([
+        load_sprite(
+            "sprites/shots/enemy_a.png",
+            &assets,
+            &mut atlas,
+            UVec2::new(3, 7),
+        ),
+        load_sprite(
+            "sprites/shots/enemy_b.png",
+            &assets,
+            &mut atlas,
+            UVec2::new(3, 7),
+        ),
+        load_sprite(
+            "sprites/shots/enemy_c.png",
+            &assets,
+            &mut atlas,
+            UVec2::new(3, 6),
+        ),
+    ]));
 
     // load assets
     let _ = assets.load::<Image>("sprites/shots/player.png");
@@ -139,10 +168,15 @@ pub fn on_hit_destroy(trigger: Trigger<Hit>, mut cmds: Commands) {
     cmds.entity(trigger.entity()).despawn();
 }
 
-pub fn spawn_enemy_shots(mut cmds: Commands, sprite: Res<SpriteWithAtlas>, position: Vec2) {
+pub fn spawn_enemy_shots(
+    mut cmds: Commands,
+    sprite: Res<EnemyShotSpritesWithAtlas>,
+    position: Vec2,
+) {
+    let mut rng = rand::rng();
     let sprite = sprite.0.clone();
     cmds.spawn((
-        sprite,
+        sprite.choose(&mut rng).unwrap().clone(),
         Transform::from_xyz(position.x, position.y, 0.0),
         EnemyShot,
         Collider {
@@ -160,9 +194,14 @@ fn move_player_shots(mut shots: Query<&mut Transform, With<PlayerShot>>) {
     }
 }
 
-fn move_enemy_shots(mut shots: Query<(&mut Transform, &mut Sprite), With<EnemyShot>>) {
-    for (mut transform, mut sprite) in shots.iter_mut() {
+fn move_enemy_shots(mut shots: Query<&mut Transform, With<EnemyShot>>) {
+    for mut transform in shots.iter_mut() {
         transform.translation.y -= ENEMY_PROJECTILE_SPEED;
+    }
+}
+
+fn animate_enemy_shots(mut shots: Query<&mut Sprite, With<EnemyShot>>) {
+    for mut sprite in shots.iter_mut() {
         if let Some(atlas) = &mut sprite.texture_atlas {
             atlas.index = (atlas.index + 1) % 4;
         }
