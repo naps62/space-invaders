@@ -79,7 +79,12 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
                             })
                             .with_children(|parent| {
                                 parent.spawn((Text::new("Score <1>"), font.clone(), color));
-                                parent.spawn((ScoreIndicator, Text::new(""), font.clone(), color));
+                                parent.spawn((
+                                    ScoreIndicator,
+                                    Text::new(" 0000"),
+                                    font.clone(),
+                                    color,
+                                ));
                             });
 
                         parent
@@ -184,13 +189,15 @@ fn update_lives(
     mut cmds: Commands,
     lives: Res<Lives>,
     indicator: Single<&mut Text, With<LivesIndicator>>,
-    images_indicator: Single<(Entity, &Children), With<LivesImagesIndicator>>,
+    images_indicator: Single<(Entity, Option<&Children>), With<LivesImagesIndicator>>,
 ) {
     let mut indicator = indicator.into_inner();
     *indicator = Text::new(format!(" {}", lives.0));
 
     let (parent, children) = images_indicator.into_inner();
-    if let Some(&last_child) = children.iter().last() {
-        cmds.entity(parent).remove_children(&[last_child]);
+    if let Some(children) = children {
+        if let Some(&last_child) = children.iter().last() {
+            //cmds.entity(last_child).despawn();
+        }
     }
 }

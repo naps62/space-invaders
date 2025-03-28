@@ -1,6 +1,7 @@
 mod camera;
 mod constants;
 mod enemy;
+mod game_over;
 mod hud;
 mod menu;
 mod player;
@@ -46,5 +47,6 @@ fn main() {
         .add_plugins(camera::CameraPlugin)
         .add_plugins(score::ScorePlugin)
         .add_plugins(menu::MenuPlugin)
+        .add_plugins(game_over::GameOverPlugin)
         .run();
 }

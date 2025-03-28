@@ -125,6 +125,11 @@ fn startup(
     }
 
     let _ = assets.load::<AudioSource>("sounds/enemy-killed.ogg");
+
+    cmds.insert_resource(EnemyDirection::default());
+    cmds.insert_resource(MoveTimer {
+        timer: Timer::from_seconds(1., TimerMode::Repeating),
+    });
 }
 
 #[derive(Component, Default, Debug)]

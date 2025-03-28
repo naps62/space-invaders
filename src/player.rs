@@ -32,6 +32,8 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
         shots::Collider::player_layer(),
     ))
     .observe(on_hit);
+
+    cmds.insert_resource(Lives(3));
 }
 
 fn on_hit(
