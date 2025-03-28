@@ -9,8 +9,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(Lives(3))
-            .add_systems(OnEnter(GameState::Playing), startup)
+        app.add_systems(OnEnter(GameState::Playing), startup)
             .add_systems(
                 FixedUpdate,
                 (move_player, player_shoot).run_if(in_state(GameState::Playing)),
@@ -19,6 +18,8 @@ impl Plugin for PlayerPlugin {
 }
 
 fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
+    cmds.insert_resource(Lives(1));
+
     let player_sprite = assets.load("sprites/player.png");
     cmds.spawn((
         Player,
@@ -30,10 +31,8 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
         },
         Transform::from_xyz(ARENA_SIZE.x / 2., PLAYER_FLOOR_GAP, 0.0),
         shots::Collider::player_layer(),
-    ))
-    .observe(on_hit);
-
-    cmds.insert_resource(Lives(1));
+    ));
+    //.observe(on_hit);
 }
 
 fn on_hit(

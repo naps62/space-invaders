@@ -10,8 +10,8 @@ impl Plugin for HudPlugin {
                 Update,
                 (
                     update_scale,
-                    update_score.run_if(resource_changed::<Score>),
-                    update_lives.run_if(resource_changed::<Lives>),
+                    update_score.run_if(resource_exists_and_changed::<Score>),
+                    update_lives.run_if(resource_exists_and_changed::<Lives>),
                 )
                     .run_if(in_state(GameState::Playing)),
             );
