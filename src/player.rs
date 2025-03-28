@@ -33,7 +33,7 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
     ))
     .observe(on_hit);
 
-    cmds.insert_resource(Lives(3));
+    cmds.insert_resource(Lives(1));
 }
 
 fn on_hit(
