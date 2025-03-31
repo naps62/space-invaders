@@ -18,7 +18,7 @@ impl Plugin for PlayerPlugin {
 }
 
 fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
-    cmds.insert_resource(Lives(1));
+    cmds.insert_resource(Lives(3));
 
     let player_sprite = assets.load("sprites/player.png");
     cmds.spawn((
