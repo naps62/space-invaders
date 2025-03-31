@@ -7,7 +7,7 @@ use crate::{
     GameState,
 };
 use bevy::prelude::*;
-use rand::Rng as _;
+// use rand::Rng as _;
 
 pub struct EnemyPlugin;
 
@@ -239,8 +239,9 @@ fn shoot(
     if timer.0.finished() {
         timer.0.reset();
 
-        let mut rng = rand::rng();
-        let rand = rng.random_range(0..enemies.iter().len());
+        // let mut rng = rand::rng();
+        // let rand = rng.random_range(0..enemies.iter().len());
+        let rand = 0;
 
         let enemy = enemies.iter().nth(rand).unwrap();
 

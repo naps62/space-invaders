@@ -28,6 +28,7 @@ fn main() {
                 .build()
                 .set(WindowPlugin {
                     primary_window: Some(Window {
+                        canvas: Some("#canvas".into()),
                         title: "Space Invaders".into(),
                         ..default()
                     }),

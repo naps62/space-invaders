@@ -6,7 +6,7 @@ use bevy::{
     prelude::*,
     time::common_conditions::on_timer,
 };
-use rand::seq::IndexedRandom as _;
+// use rand::seq::IndexedRandom as _;
 
 pub struct ShotPlugin;
 
@@ -175,10 +175,11 @@ pub fn spawn_enemy_shots(
     sprite: Res<EnemyShotSpritesWithAtlas>,
     position: Vec2,
 ) {
-    let mut rng = rand::rng();
+    // let mut rng = rand::rng();
     let sprite = sprite.0.clone();
     cmds.spawn((
-        sprite.choose(&mut rng).unwrap().clone(),
+        // sprite.choose(&mut rng).unwrap().clone(),
+        sprite[0].clone(),
         Transform::from_xyz(position.x, position.y, 0.0),
         EnemyShot,
         Collider {

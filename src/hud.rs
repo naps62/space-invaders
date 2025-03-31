@@ -5,7 +5,7 @@ pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Playing), setup)
+        app.add_systems(OnEnter(GameState::Playing), (setup, init_scale).chain())
             .add_systems(
                 Update,
                 (
@@ -165,6 +165,10 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+fn init_scale(mut ui_scale: ResMut<UiScale>, window: Single<&Window>) {
+    set_scale(&mut ui_scale, window.into_inner());
+}
+
 fn update_scale(
     mut e: EventReader<WindowResized>,
     mut ui_scale: ResMut<UiScale>,
@@ -175,9 +179,13 @@ fn update_scale(
     // we don't actually care about the events, just clear them and process scale once
     if !e.is_empty() {
         e.clear();
-        let scale = window.size() / ARENA_SIZE;
-        ui_scale.0 = scale.x.min(scale.y);
+        set_scale(&mut ui_scale, window);
     }
+}
+
+fn set_scale(ui_scale: &mut UiScale, window: &Window) {
+    let scale = window.size() / ARENA_SIZE;
+    ui_scale.0 = scale.x.min(scale.y);
 }
 
 fn update_score(score: Res<Score>, indicator: Single<&mut Text, With<ScoreIndicator>>) {
