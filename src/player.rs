@@ -31,8 +31,8 @@ fn startup(mut cmds: Commands, assets: Res<AssetServer>) {
         },
         Transform::from_xyz(ARENA_SIZE.x / 2., PLAYER_FLOOR_GAP, 0.0),
         shots::Collider::player_layer(),
-    ));
-    //.observe(on_hit);
+    ))
+    .observe(on_hit);
 }
 
 fn on_hit(

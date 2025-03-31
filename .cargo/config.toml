@@ -18,3 +18,7 @@ codegen-backend = "llvm"
 
 [build]
 rustflags = ["-Z", "threads=8"]
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

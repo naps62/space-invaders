@@ -1,6 +1,6 @@
 use bevy::{prelude::*, text::FontSmoothing};
 
-use crate::{constants::*, GameState};
+use crate::GameState;
 
 pub struct GameOverPlugin;
 
@@ -8,7 +8,6 @@ impl Plugin for GameOverPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::GameOver), setup)
             .add_systems(Update, input.run_if(in_state(GameState::GameOver)));
-        //.add_systems(OnExit(GameState::GameOver), teardown);
     }
 }
 
@@ -16,7 +15,6 @@ impl Plugin for GameOverPlugin {
 struct GameOverScreen;
 
 fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
-    use FlexDirection::*;
     use JustifyContent::*;
     use Val::*;
 
@@ -25,7 +23,6 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
         font_size: 14.0,
         font_smoothing: FontSmoothing::None,
     };
-    let color: TextColor = Color::srgb(0.7, 0.7, 0.7).into();
 
     cmds.spawn((
         GameOverScreen,
@@ -43,10 +40,6 @@ fn setup(mut cmds: Commands, asset_server: Res<AssetServer>) {
     .with_children(|parent| {
         parent.spawn((Text::new("Game Over"), font));
     });
-}
-
-fn teardown(mut cmds: Commands, game_over_screen: Single<Entity, With<GameOverScreen>>) {
-    //cmds.entity(game_over_screen.into_inner()).despawn();
 }
 
 fn input(

@@ -1,5 +1,5 @@
 use crate::{constants::*, player::Lives, score::Score, GameState};
-use bevy::{prelude::*, text::FontSmoothing, ui::widget::ImageNodeSize, window::WindowResized};
+use bevy::{prelude::*, text::FontSmoothing, window::WindowResized};
 
 pub struct HudPlugin;
 
@@ -194,10 +194,10 @@ fn update_lives(
     let mut indicator = indicator.into_inner();
     *indicator = Text::new(format!(" {}", lives.0));
 
-    let (parent, children) = images_indicator.into_inner();
+    let (_parent, children) = images_indicator.into_inner();
     if let Some(children) = children {
         if let Some(&last_child) = children.iter().last() {
-            //cmds.entity(last_child).despawn();
+            cmds.entity(last_child).despawn();
         }
     }
 }
